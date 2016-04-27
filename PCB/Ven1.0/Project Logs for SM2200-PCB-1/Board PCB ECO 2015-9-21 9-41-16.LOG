@@ -1,0 +1,52 @@
+Removed Pin From Net: NetName=SPI1_MISO Pin=U1-33
+Removed Pin From Net: NetName=SPI1_MOSI Pin=U1-34
+Removed Pin From Net: NetName=SPI1_CLK Pin=U1-35
+Removed Pin From Net: NetName=SPI1_NSS Pin=U1-36
+Removed Pin From Net: NetName=RST1 Pin=U3-44
+Removed Pin From Net: NetName=INT Pin=U3-45
+Removed Pin From Net: NetName=SCS2 Pin=U3-73
+Removed Pin From Net: NetName=SCLK2 Pin=U3-74
+Removed Pin From Net: NetName=MISO2 Pin=U3-75
+Removed Pin From Net: NetName=MOSI2 Pin=U3-76
+Removed Pin From Net: NetName=RESET2 Pin=U3-77
+Removed Pin From Net: NetName=PWDN2 Pin=U3-78
+Removed Pin From Net: NetName=INT2 Pin=U3-79
+Removed Pin From Net: NetName=SCLK1 Pin=U3-111
+Removed Pin From Net: NetName=MISO1 Pin=U3-112
+Removed Pin From Net: NetName=MOSI1 Pin=U3-113
+Removed Pin From Net: NetName=SCS1 Pin=U3-114
+Removed Pin From Net: NetName=RESET1 Pin=U3-115
+Removed Pin From Net: NetName=PWDN1 Pin=U3-116
+Removed Pin From Net: NetName=INT1 Pin=U3-117
+Added Pin To Net: NetName=SCS1 Pin=U3-73
+Added Pin To Net: NetName=SCLK1 Pin=U3-74
+Added Pin To Net: NetName=MISO1 Pin=U3-75
+Added Pin To Net: NetName=MOSI1 Pin=U3-76
+Added Pin To Net: NetName=PWDN1 Pin=U3-77
+Added Pin To Net: NetName=RESET1 Pin=U3-78
+Added Pin To Net: NetName=INT1 Pin=U3-79
+Added Pin To Net: NetName=RESET2 Pin=U3-116
+Added Pin To Net: NetName=NetU3_44 Pin=U3-44
+Added Net: Name=NetU3_44
+Added Pin To Net: NetName=NetU3_45 Pin=U3-45
+Added Net: Name=NetU3_45
+Added Pin To Net: NetName=NetU3_115 Pin=U3-115
+Added Net: Name=NetU3_115
+Added Pin To Net: NetName=NetU3_117 Pin=U3-117
+Added Net: Name=NetU3_117
+Added Pin To Net: NetName=SPI3_CLK Pin=U3-111
+Added Net: Name=SPI3_CLK
+Added Pin To Net: NetName=SPI3_MISO Pin=U3-112
+Added Net: Name=SPI3_MISO
+Added Pin To Net: NetName=SPI3_MOSI Pin=U3-113
+Added Net: Name=SPI3_MOSI
+Added Pin To Net: NetName=SPI3_NSS Pin=U3-114
+Added Net: Name=SPI3_NSS
+Added Pin To Net: NetName=SPI_SCK Pin=U1-35
+Added Net: Name=SPI_SCK
+Added Pin To Net: NetName=SPI_SI Pin=U1-34
+Added Net: Name=SPI_SI
+Added Pin To Net: NetName=SPI_SO Pin=U1-33
+Added Net: Name=SPI_SO
+Added Pin To Net: NetName=SPISS Pin=U1-36
+Added Net: Name=SPISS

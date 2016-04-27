@@ -1,0 +1,8 @@
+Added Component: Designator=C124(0603)
+Added Component: Designator=C125(0603)
+Added Pin To Net: NetName=GND Pin=C124-1
+Added Pin To Net: NetName=AFE_VCC Pin=C124-2
+Added Pin To Net: NetName=GND Pin=C125-1
+Added Pin To Net: NetName=AFE_VCC Pin=C125-2
+Added Member To Class: ClassName=U_SM2200 Member=Component C124 Capacitor-0603
+Added Member To Class: ClassName=U_SM2200 Member=Component C125 Capacitor-0603

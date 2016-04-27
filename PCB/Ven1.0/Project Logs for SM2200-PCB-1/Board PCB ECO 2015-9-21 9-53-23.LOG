@@ -1,0 +1,11 @@
+Added Pin To Net: NetName=SPI3_MOSI Pin=U1-34
+Added Pin To Net: NetName=SPI3_CLK Pin=U1-35
+Added Pin To Net: NetName=SPI3_NSS Pin=U1-36
+Added Pin To Net: NetName=SCS2 Pin=U3-40
+Added Pin To Net: NetName=SCLK2 Pin=U3-41
+Added Pin To Net: NetName=MISO2 Pin=U3-42
+Added Pin To Net: NetName=MOSI2 Pin=U3-43
+Added Pin To Net: NetName=PWDN2 Pin=U3-44
+Added Pin To Net: NetName=INT2 Pin=U3-45
+Added Pin To Net: NetName=RST1 Pin=U3-115
+Added Pin To Net: NetName=INT Pin=U3-117

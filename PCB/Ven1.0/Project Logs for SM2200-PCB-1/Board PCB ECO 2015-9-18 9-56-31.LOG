@@ -1,0 +1,13 @@
+Added Component: Designator=J5(DB9)
+Added Pin To Net: NetName=RS485_A Pin=J5-1
+Added Pin To Net: NetName=RS232_RX Pin=J5-2
+Added Pin To Net: NetName=RS232_TX Pin=J5-3
+Added Pin To Net: NetName=GND Pin=J5-5
+Added Pin To Net: NetName=RS485_B Pin=J5-6
+Added Member To Class: ClassName=U_Module Member=Component J5 DB9
+Added Room: Name=U_GC2200
+Added Room: Name=U_MCU
+Added Room: Name=U_Module
+Added Room: Name=U_Power
+Added Room: Name=U_RJ45
+Added Room: Name=U_RJ45-2

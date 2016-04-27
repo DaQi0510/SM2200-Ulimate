@@ -1,0 +1,10 @@
+Removed Pin From Net: NetName=NetR55_2 Pin=U3-139
+Removed Pin From Net: NetName=NetR57_2 Pin=U3-140
+Removed Pin From Net: NetName=NetR54_2 Pin=U3-142
+Added Component: Designator=C119(0603)
+Added Pin To Net: NetName=GND Pin=C119-1
+Added Pin To Net: NetName=VDD3.3 Pin=C119-2
+Added Pin To Net: NetName=NetR54_2 Pin=U3-139
+Added Pin To Net: NetName=NetR55_2 Pin=U3-140
+Added Pin To Net: NetName=NetR57_2 Pin=U3-142
+Added Member To Class: ClassName=U_MCU Member=Component C119 Capacitor-0805

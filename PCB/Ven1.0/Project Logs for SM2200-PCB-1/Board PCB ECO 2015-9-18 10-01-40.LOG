@@ -1,0 +1,10 @@
+Added Component: Designator=U5(AT24C02)
+Added Pin To Net: NetName=GND Pin=U5-1
+Added Pin To Net: NetName=GND Pin=U5-2
+Added Pin To Net: NetName=GND Pin=U5-3
+Added Pin To Net: NetName=GND Pin=U5-4
+Added Pin To Net: NetName=NetR45_2 Pin=U5-5
+Added Pin To Net: NetName=NetR42_2 Pin=U5-6
+Added Pin To Net: NetName=GND Pin=U5-7
+Added Pin To Net: NetName=VDD3.3 Pin=U5-8
+Added Member To Class: ClassName=U_Module Member=Component U5 AT24C02
