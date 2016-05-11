@@ -116,6 +116,7 @@ void RJ45_2_Write(u8 *WData,u16 Len);
 void RJ45_2_Write_Register(u16 Address,u8 Data);
 u8 RJ45_2_Read_Register(u16 Address);
 u8 RJ45_2_ReadWriteByte(u8 TxData);
+void RJ45_2_Deal(void); //接收数据处理
 	
 void ShakeHand(void);
 #endif

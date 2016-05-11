@@ -1,5 +1,6 @@
 #include "W5200.h"
 #include "led.h"
+#include "wwdg.h"
 
 extern u8  ConnectState;       //设备连接状态
 
@@ -35,9 +36,7 @@ extern u8 RCR_Num;   //重新发送次数
 u8 W5200_Rx_Size[8]={0x08,0x02,0x01,0x01,0x01,0x01,0x01,0x01}; //Channel_Size[i]=(Rx_Size[i])K And SUM=16K
 u8 W5200_Tx_Size[8]={0x08,0x02,0x01,0x01,0x01,0x01,0x01,0x01}; //Channel_Size[i]=(Tx_Size[i])K And SUM=16K
 extern volatile u8 CommandFlag;
-u8 EstablishConnect[8]={'C','o','n','n','e','c','t','d'};
-u8 DisConnect[8]={'S','h','u','t','d','o','w','n'};
-
+u16 RJ45_2_DataLength;
 extern u8 ShakeHands[7];
 extern u8 Flag;
 extern u8 Len;
@@ -140,7 +139,7 @@ void RJ45_1_GPIO_Init(void)
 	
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;//外部中断10
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02;//抢占优先级0
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x03;//子优先级2
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02;//子优先级2
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure);//配置	
 }
@@ -296,6 +295,7 @@ void RJ45_1_Read(u8 *RData)
 {
 	
 	u16 Len,Start_Address,i,RD_Num,DataLength;
+  Set_WWDG();
 	RData[0]=RJ45_1_Read_Register(Sn_Rx_RSR);
 	RData[1]=RJ45_1_Read_Register(Sn_Rx_RSR+1);  //读取接收到的字节长度
 
@@ -357,6 +357,7 @@ void RJ45_1_Read(u8 *RData)
 void RJ45_1_Write(u8 *WData,u16 Len)
 {
 	u16 i,Start_Address,DataLength,WR_Num;
+	Set_WWDG();
 	Start_Address =(RJ45_1_Read_Register(Sn_TX_WR))<<8;
 	Start_Address +=RJ45_1_Read_Register(Sn_TX_WR+1);
 	WR_Num = Start_Address+Len;
@@ -572,7 +573,7 @@ void RJ45_2_GPIO_Init(void)
 	
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;//外部中断10
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02;//抢占优先级0
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x03;//子优先级2
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02;//子优先级2
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure);//配置	
 }
@@ -669,20 +670,17 @@ u8 RJ45_2_TCP_Init(void)
 
 void RJ45_2_Read(u8 *RData)
 {
-	
 	u16 Len,Start_Address,i,RD_Num,DataLength;
+	Set_WWDG();
 	RData[0]=RJ45_2_Read_Register(Sn_Rx_RSR);
 	RData[1]=RJ45_2_Read_Register(Sn_Rx_RSR+1);  //读取接收到的字节长度
-
 	Len=(u16)(RData[0]<<8)+RData[1];
-
 	Len=Len&Sn_RX_Mask;
-
+	RJ45_2_DataLength=Len;
 	Start_Address=RJ45_2_Read_Register(Sn_RX_RD);
 	Start_Address=(Start_Address&0x00FF)<<8;	
 	Start_Address+=RJ45_2_Read_Register(Sn_RX_RD+1); //读取初始地址
 	RD_Num =Start_Address +Len;
-
 	Start_Address=Start_Address&Sn_RX_Mask;
 	if(Start_Address+Len>Sn_RX_Mask+1)
 	{
@@ -695,7 +693,7 @@ void RJ45_2_Read(u8 *RData)
 		RJ45_2_ReadWriteByte(DataLength&0x00FF);
 		for(i=0;i<DataLength;i++)
 		{
-			RData[i+2]=RJ45_2_ReadWriteByte(0x00);
+			RData[i]=RJ45_2_ReadWriteByte(0x00);
 		}
 		Start_Address =Sn_RX_Base ;
 		RJ45_2_ReadWriteByte((Start_Address&0xFF00)>>8);  // Address byte 1
@@ -704,7 +702,7 @@ void RJ45_2_Read(u8 *RData)
 		RJ45_2_ReadWriteByte((Len-DataLength)&0x00FF);
 		for(i=0;i<(Len-DataLength);i++)
 		{
-			RData[i+DataLength+2]=RJ45_2_ReadWriteByte(0x00);
+			RData[i+DataLength]=RJ45_2_ReadWriteByte(0x00);
 		}
 		RJ45_2_CS_High ;	
 	}
@@ -719,7 +717,7 @@ void RJ45_2_Read(u8 *RData)
 		RJ45_2_ReadWriteByte(DataLength&0x00FF);
 		for(i=0;i<DataLength;i++)
 		{
-			RData[i+2]=RJ45_2_ReadWriteByte(0x00);
+			RData[i]=RJ45_2_ReadWriteByte(0x00);
 		}
 		RJ45_2_CS_High ;	
 	}	
@@ -732,6 +730,7 @@ void RJ45_2_Read(u8 *RData)
 void RJ45_2_Write(u8 *WData,u16 Len)
 {
 	u16 i,Start_Address,DataLength,WR_Num;
+	Set_WWDG();
 	Start_Address =(RJ45_2_Read_Register(Sn_TX_WR))<<8;
 	Start_Address +=RJ45_2_Read_Register(Sn_TX_WR+1);
 	WR_Num = Start_Address+Len;
@@ -838,18 +837,46 @@ void EXTI9_5_IRQHandler(void)
 		{
 			RJ45_2_Write_Register(Sn_IR ,DISCON_Flag);
 			RJ45_2_Write_Register(Sn_CR ,CLOSE); 
+			Set_WWDG();
 			LED4 =0;	
+			RJ45_2_Connect=0;
 			RJ45_2_Init();
-			delay_ms(10);
+			delay_ms(1);
 			RJ45_2_TCP_Init();			
 		}
 		if(EventInformation&RECEV)
 		{	
 			RJ45_2_Read(RJ45_2_RData);
+			RJ45_2_Deal();
 			RJ45_2_ReceiveFlag=1;
 			RJ45_2_Write_Register(Sn_IR,RECEV);		
 		}
 		EXTI_ClearITPendingBit(EXTI_Line5);
+	}
+}
+void RJ45_2_Deal(void)     //接收数据处理
+{
+	Set_WWDG();
+	if((RJ45_2_RData[0]==0x3C)&&(RJ45_2_RData[RJ45_2_DataLength-1]==0x3E))    //判断数据包头包尾
+	{
+		switch (RJ45_2_RData[1])
+		{
+			case 0x00:      //与电脑建立连接
+				RJ45_2_WData[0]=0x3C;
+				RJ45_2_WData[1]=0x00;
+			  RJ45_2_WData[2]=0x3E;
+				RJ45_2_Write(RJ45_2_WData,3);
+			  RJ45_2_Connect=1;
+				break;
+			case 0x01:    //与电脑断开连接
+				RJ45_2_WData[0]=0x3C;
+				RJ45_2_WData[1]=0x01;
+			  RJ45_2_WData[2]=0x3E;
+				RJ45_2_Write(RJ45_2_WData,3);
+				RJ45_2_Connect=0;
+			break;
+				
+		}
 	}
 }
 

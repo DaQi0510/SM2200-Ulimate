@@ -3,7 +3,7 @@
 ..\obj\netcheck.o: ..\SYSTEM\sys\sys.h
 ..\obj\netcheck.o: ..\USER\stm32f4xx.h
 ..\obj\netcheck.o: ..\CORE\core_cm4.h
-..\obj\netcheck.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\netcheck.o: D:\Keil\ARM\ARMCC\Bin\..\include\stdint.h
 ..\obj\netcheck.o: ..\CORE\core_cmInstr.h
 ..\obj\netcheck.o: ..\CORE\core_cmFunc.h
 ..\obj\netcheck.o: ..\CORE\core_cm4_simd.h

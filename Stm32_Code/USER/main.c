@@ -146,10 +146,11 @@ int main(void)
 {
 
 	delay_init(168);	   //延时函数初始化
+	WWDG_Init(0x7F,0x7b,WWDG_Prescaler_8); 	//窗口看门狗
 	gpio_Init();
   NetPower_On;         //网口电源
 	SM2200Power_On ;
-	WWDG_Init(0x7F,0X5F,WWDG_Prescaler_8); 	//窗口看门狗
+	
 	delay_ms(10);
 	AT24C02_Init();     
 	delay_ms(10);
@@ -167,7 +168,7 @@ int main(void)
 	RJ45_1_Connect=0;
 	RJ45_2_Connect=0;
 	RJ45_1_ReceiveFlag=0;
-	
+
 	RJ45_1_Init();
 	delay_ms(100);
 	RJ45_1_TCP_ServiceInit();
@@ -175,7 +176,6 @@ int main(void)
 	RJ45_2_Init();
 	delay_ms(100);
 	RJ45_2_TCP_Init();
-	
 	trr++;
 	while(1)
 	{

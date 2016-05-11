@@ -1,5 +1,5 @@
 #include "wwdg.h"
-
+#include "led.h"
 u8 WWDG_CNT=0X7F;
 
 //初始化窗口看门狗 	
@@ -33,7 +33,16 @@ void WWDG_Init(u8 tr,u8 wr,u32 fprer)
 
 void WWDG_IRQHandler(void)
 {
+	u8 i;
 	WWDG_SetCounter(WWDG_CNT); //重设窗口看门狗值
-	WWDG_ClearFlag();//清除提前唤醒中断标志
+	WWDG_ClearFlag();          //清除提前唤醒中断标志	
+	for(i=0;i<2;i++);          //此处延时一下，等寄存器稳定
 }
 
+void Set_WWDG(void)   
+{
+  u8 i;
+	if((WWDG->CR&0x7f)<0x7e)
+		WWDG->CR=0x7f;
+	for(i=0;i<2;i++);          //此处延时一下，等寄存器稳定
+}

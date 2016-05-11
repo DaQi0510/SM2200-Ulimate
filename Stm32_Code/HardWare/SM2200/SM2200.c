@@ -1,4 +1,5 @@
 #include "sm2200.h"
+#include "wwdg.h"
 #include "delay.h"
 
 /*******************SM2200部分****************************/
@@ -128,6 +129,7 @@ void SetSm2200Frenquence(u8 ChannelN)
 void SM2200_Send(void)
 {
 	u8 i,Channel;
+	Set_WWDG();
 	for(Channel =0;Channel <18;Channel ++)
 	{
 		if(ChannelSend &(1<<Channel))
@@ -148,9 +150,11 @@ void SM2200_Send(void)
 }
 //接收函数，中断内执行
 void SM2200_Receive(void)
-{	
+{
+	
 	u8 num,Packet_Size,Channel;
 	unsigned long Reveive_Channel,Data_Size;
+	Set_WWDG();
 	/***************RECEIVE_STATUS说明********************/
 	//地址0x40    
 	/*    
@@ -311,8 +315,8 @@ void SM2200_GPIO(void)
   EXTI_Init(&EXTI_InitStructure);//配置
 	
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn;//外部中断12
-  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x03;//抢占优先级0
-  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x03;//子优先级2
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x02;//抢占优先级0
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x02;//子优先级2
   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//使能外部中断通道
   NVIC_Init(&NVIC_InitStructure);//配置	
 }
@@ -320,6 +324,7 @@ void SM2200_GPIO(void)
 void EXTI0_IRQHandler(void)
 {
 	u16 Event;
+	Set_WWDG();
 	if(EXTI_GetITStatus(EXTI_Line0) != RESET)
 	{
 		Event=OfdmXcvrRead (INTERRUPT_EVENT,2);

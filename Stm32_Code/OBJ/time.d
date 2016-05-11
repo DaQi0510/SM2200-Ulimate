@@ -3,7 +3,7 @@
 ..\obj\time.o: ..\FWLIB\inc\stm32f4xx_tim.h
 ..\obj\time.o: ..\USER\stm32f4xx.h
 ..\obj\time.o: ..\CORE\core_cm4.h
-..\obj\time.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\time.o: D:\Keil\ARM\ARMCC\Bin\..\include\stdint.h
 ..\obj\time.o: ..\CORE\core_cmInstr.h
 ..\obj\time.o: ..\CORE\core_cmFunc.h
 ..\obj\time.o: ..\CORE\core_cm4_simd.h
