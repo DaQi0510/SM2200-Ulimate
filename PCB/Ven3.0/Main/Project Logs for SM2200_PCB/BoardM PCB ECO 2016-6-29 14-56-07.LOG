@@ -1,0 +1,4 @@
+Added Component: Designator=C138(3528)
+Added Pin To Net: NetName=GND Pin=C138-1
+Added Pin To Net: NetName=AFE_VCC Pin=C138-2
+Added Member To Class: ClassName=U_SM2200 Member=Component C138 µÁΩ‚µÁ»›

@@ -1,7 +1,7 @@
 #include "W5200.h"
 #include "led.h"
 #include "wwdg.h"
-
+#include "sm2200.h"
 extern u8  ConnectState;       //设备连接状态
 
 extern volatile u8 ConnectDevice;     //连接设备号
@@ -27,9 +27,9 @@ extern u8 RJ45_2_SubNet[4];
 extern u16 RJ45_2_Loc_Potr;
 extern u8 RJ45_2_RData[1024];
 extern u8 RJ45_2_WData[1024];
-extern u8 RJ45_2_Connect;  //连接状态
-extern u8 RJ45_2_ReceiveFlag;//标记网口2是否接收到数据
-extern u8 RJ45_2_Send;     //发送状态
+extern u8 RJ45_2_Connect;     //连接状态
+extern u8 RJ45_2_ReceiveFlag; //标记网口2是否接收到数据
+extern u8 RJ45_2_Send;        //发送状态
 extern u8 Dest_IP[4] ;
 extern u16 RTR_Time; //重新发送时间
 extern u8 RCR_Num;   //重新发送次数 
@@ -43,8 +43,16 @@ extern u8 Len;
 extern volatile u8 Netflag;   //用于指示当前网络所处状态
 extern volatile u8 BER_Flag;
 
+extern volatile u32 ChannelSend;     //标记发送的通道
+extern volatile u32 ChannelReceive;  //标记接收的通道
+extern volatile u8 ChannelFrenquence[18];//18个通道频点数组
+extern volatile u8 SM2200RxBuf[18][128];    //18个通道接收数据包数组
+extern u8 Voltage;                   //记录电压幅值
+extern volatile u16 ToDevice;        //要发送到数据的设备号  
+extern volatile u16 ReDevice;        //接收到数据的设备号
+
 /********************RJ45_1部分*****************************/
-/**
+/*
 --------------|-------------
         RST  <->  PE12
         PWDN <->  PE13
@@ -671,7 +679,6 @@ u8 RJ45_2_TCP_Init(void)
 void RJ45_2_Read(u8 *RData)
 {
 	u16 Len,Start_Address,i,RD_Num,DataLength;
-	Set_WWDG();
 	RData[0]=RJ45_2_Read_Register(Sn_Rx_RSR);
 	RData[1]=RJ45_2_Read_Register(Sn_Rx_RSR+1);  //读取接收到的字节长度
 	Len=(u16)(RData[0]<<8)+RData[1];
@@ -730,7 +737,6 @@ void RJ45_2_Read(u8 *RData)
 void RJ45_2_Write(u8 *WData,u16 Len)
 {
 	u16 i,Start_Address,DataLength,WR_Num;
-	Set_WWDG();
 	Start_Address =(RJ45_2_Read_Register(Sn_TX_WR))<<8;
 	Start_Address +=RJ45_2_Read_Register(Sn_TX_WR+1);
 	WR_Num = Start_Address+Len;
@@ -829,15 +835,14 @@ void EXTI9_5_IRQHandler(void)
 		EventInformation=RJ45_2_Read_Register(Sn_IR);
     if(EventInformation&CON)
 		{
-			RJ45_2_Connect =1 ;
 		  LED4 =1;
+			RJ45_2_Connect=1;
 			RJ45_2_Write_Register(Sn_IR ,CON);
 		}
 		if(EventInformation&DISCON_Flag)
 		{
 			RJ45_2_Write_Register(Sn_IR ,DISCON_Flag);
 			RJ45_2_Write_Register(Sn_CR ,CLOSE); 
-			Set_WWDG();
 			LED4 =0;	
 			RJ45_2_Connect=0;
 			RJ45_2_Init();
@@ -847,8 +852,8 @@ void EXTI9_5_IRQHandler(void)
 		if(EventInformation&RECEV)
 		{	
 			RJ45_2_Read(RJ45_2_RData);
-			RJ45_2_Deal();
-			RJ45_2_ReceiveFlag=1;
+//			RJ45_2_Deal();
+			ReDevice++;
 			RJ45_2_Write_Register(Sn_IR,RECEV);		
 		}
 		EXTI_ClearITPendingBit(EXTI_Line5);
@@ -856,27 +861,104 @@ void EXTI9_5_IRQHandler(void)
 }
 void RJ45_2_Deal(void)     //接收数据处理
 {
-	Set_WWDG();
+	u8 i;
 	if((RJ45_2_RData[0]==0x3C)&&(RJ45_2_RData[RJ45_2_DataLength-1]==0x3E))    //判断数据包头包尾
 	{
-		switch (RJ45_2_RData[1])
+		if(RJ45_2_RData[1]==0x00)  //与电脑建立连接
 		{
-			case 0x00:      //与电脑建立连接
 				RJ45_2_WData[0]=0x3C;
 				RJ45_2_WData[1]=0x00;
 			  RJ45_2_WData[2]=0x3E;
 				RJ45_2_Write(RJ45_2_WData,3);
 			  RJ45_2_Connect=1;
-				break;
-			case 0x01:    //与电脑断开连接
+		}
+		if(RJ45_2_RData[1]==0x01)  //与电脑断开连接
+		{
 				RJ45_2_WData[0]=0x3C;
 				RJ45_2_WData[1]=0x01;
 			  RJ45_2_WData[2]=0x3E;
 				RJ45_2_Write(RJ45_2_WData,3);
-				RJ45_2_Connect=0;
-			break;
-				
+			  RJ45_2_Connect=0;
 		}
+    if(RJ45_2_RData[1]==0x02)  //发送信息确认
+		{
+		}
+		if(RJ45_2_RData[1]==0x03)  //接收信息确认
+		{
+		}
+		if(RJ45_2_RData[1]==0x04)  //通信频点查找
+		{
+			  ToDevice=RJ45_2_RData[2]*256+RJ45_2_RData[3];
+			  Voltage =RJ45_2_RData[5];
+			  DeviceScale =RJ45_2_RData[4];
+			  RJ45_2_WData[0]=0x3C;
+				RJ45_2_WData[1]=0x04;
+			  RJ45_2_WData[2]=0x3E;
+			  RJ45_2_Write(RJ45_2_WData,3);
+		}
+	}
+}
+void Message_Send(void)    //将发送信息反馈到电脑
+{
+	u8 i;
+	RJ45_2_WData[0]=0x3C;
+	RJ45_2_WData[1]=0x02;
+	RJ45_2_WData[2]=ToDevice/256;
+	RJ45_2_WData[3]=ToDevice%256;
+	for(i=0;i<18;i++)
+	{
+		if(ChannelSend&1<<i)
+		{
+			RJ45_2_WData[2*i+4]=i+1;
+			RJ45_2_WData[2*i+5]=ChannelFrenquence[i];
+		}
+		else
+		{
+			RJ45_2_WData[2*i+4]=0;
+			RJ45_2_WData[2*i+5]=0;
+		}
+	}
+	RJ45_2_WData[40]=Voltage;
+	RJ45_2_WData[41]=0x3E;
+	if(RJ45_2_Connect==1)
+	{
+		NVIC_EXTI(0);   //屏蔽所有外部中断
+		RJ45_2_Write(RJ45_2_WData,42);
+		NVIC_EXTI(1);  //允许所有外部中断
+	}
+}
+void Message_Rece(void)    //将接收信息反馈到电脑
+{
+	u8 i;
+	RJ45_2_WData[0]=0x3C;
+	RJ45_2_WData[1]=0x03;
+	ReDevice=0;
+	for(i=0;i<18;i++)
+	{
+		if(ChannelReceive&1<<i)
+		{
+			RJ45_2_WData[2*i+4]=i+1;
+			RJ45_2_WData[2*i+5]=ChannelFrenquence[i];
+			if(ReDevice==0)
+			{
+				ReDevice=SM2200RxBuf[i][42]*256+SM2200RxBuf[i][43];    
+			}
+		}
+		else
+		{
+			RJ45_2_WData[2*i+4]=0;
+			RJ45_2_WData[2*i+5]=0;
+		}
+	}
+	RJ45_2_WData[2]=ReDevice/256;
+	RJ45_2_WData[3]=ReDevice%256;
+	RJ45_2_WData[40]=Voltage;
+	RJ45_2_WData[41]=0x3E;
+	if(RJ45_2_Connect==1)
+	{
+		NVIC_EXTI(0);   //屏蔽所有外部中断
+		RJ45_2_Write(RJ45_2_WData,42);
+		NVIC_EXTI(1);  //允许所有外部中断
 	}
 }
 

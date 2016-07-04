@@ -3,7 +3,7 @@
 ..\obj\w5200.o: ..\FWLIB\inc\stm32f4xx_gpio.h
 ..\obj\w5200.o: ..\USER\stm32f4xx.h
 ..\obj\w5200.o: ..\CORE\core_cm4.h
-..\obj\w5200.o: D:\Keil\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\w5200.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 ..\obj\w5200.o: ..\CORE\core_cmInstr.h
 ..\obj\w5200.o: ..\CORE\core_cmFunc.h
 ..\obj\w5200.o: ..\CORE\core_cm4_simd.h
@@ -30,3 +30,6 @@
 ..\obj\w5200.o: ..\SYSTEM\delay\delay.h
 ..\obj\w5200.o: ..\HardWare\WWDG\wwdg.h
 ..\obj\w5200.o: ..\FWLIB\inc\stm32f4xx_wwdg.h
+..\obj\w5200.o: ..\HardWare\SM2200\sm2200.h
+..\obj\w5200.o: ..\FWLIB\inc\stm32f4xx_dma.h
+..\obj\w5200.o: ..\HardWare\LCD\lcd.h

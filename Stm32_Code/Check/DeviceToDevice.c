@@ -13,5 +13,4 @@ extern volatile u8 SM2200ReceiveFalg;       //当有数据时接收标记
 void DeviceToDevice(u32 CheckNum)
 {
 	u8 i;
-	
 }

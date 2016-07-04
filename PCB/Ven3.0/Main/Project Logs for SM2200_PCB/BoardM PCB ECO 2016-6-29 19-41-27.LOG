@@ -1,0 +1,55 @@
+Added Component: Designator=C121(0805)
+Added Component: Designator=C136(3528)
+Added Component: Designator=C137(0603)
+Added Component: Designator=C139(0805)
+Added Component: Designator=C140(3528)
+Added Component: Designator=C141(0603)
+Added Component: Designator=R102(0603)
+Added Component: Designator=R103(0603)
+Added Component: Designator=R105(0603)
+Added Component: Designator=R109(0603)
+Added Component: Designator=R110(0603)
+Added Component: Designator=U17(FDC6326L)
+Added Pin To Net: NetName=GND Pin=C121-1
+Added Pin To Net: NetName=AFE_VCC Pin=C121-2
+Added Pin To Net: NetName=GND Pin=C136-1
+Added Pin To Net: NetName=AFE_VCC Pin=C136-2
+Added Pin To Net: NetName=GND Pin=C137-1
+Added Pin To Net: NetName=VDD-3.3 Pin=C137-2
+Added Pin To Net: NetName=GND Pin=C139-1
+Added Pin To Net: NetName=VCC15 Pin=C139-2
+Added Pin To Net: NetName=GND Pin=C140-1
+Added Pin To Net: NetName=VCC15 Pin=C140-2
+Added Pin To Net: NetName=AFE_VCC Pin=C141-2
+Added Pin To Net: NetName=GND Pin=R102-1
+Added Pin To Net: NetName=AFE_VCC Pin=R102-2
+Added Pin To Net: NetName=GND Pin=R103-1
+Added Pin To Net: NetName=VDD-3.3 Pin=R105-2
+Added Pin To Net: NetName=VCC15 Pin=R109-1
+Added Pin To Net: NetName=GND Pin=R110-1
+Added Pin To Net: NetName=AFE_VCC Pin=U17-2
+Added Pin To Net: NetName=AFE_VCC Pin=U17-3
+Added Pin To Net: NetName=VCC15 Pin=U17-4
+Added Pin To Net: NetName=NetC141_1 Pin=C141-1
+Added Pin To Net: NetName=NetC141_1 Pin=R109-2
+Added Pin To Net: NetName=NetC141_1 Pin=U17-6
+Added Net: Name=NetC141_1
+Added Pin To Net: NetName=NetR103_2 Pin=R103-2
+Added Pin To Net: NetName=NetR103_2 Pin=R105-1
+Added Pin To Net: NetName=NetR103_2 Pin=U17-5
+Added Net: Name=NetR103_2
+Added Pin To Net: NetName=NetR110_2 Pin=R110-2
+Added Pin To Net: NetName=NetR110_2 Pin=U17-1
+Added Net: Name=NetR110_2
+Added Member To Class: ClassName=U_Power Member=Component C121 Capacitor-0805
+Added Member To Class: ClassName=U_Power Member=Component C136 电解电容
+Added Member To Class: ClassName=U_Power Member=Component C137 Capacitor-0805
+Added Member To Class: ClassName=U_Power Member=Component C139 Capacitor-0805
+Added Member To Class: ClassName=U_Power Member=Component C140 电解电容
+Added Member To Class: ClassName=U_Power Member=Component C141 Capacitor-0805
+Added Member To Class: ClassName=U_Power Member=Component R102 Resistor-0603
+Added Member To Class: ClassName=U_Power Member=Component R103 Resistor-0603
+Added Member To Class: ClassName=U_Power Member=Component R105 Resistor-0603
+Added Member To Class: ClassName=U_Power Member=Component R109 Resistor-0603
+Added Member To Class: ClassName=U_Power Member=Component R110 Resistor-0603
+Added Member To Class: ClassName=U_Power Member=Component U17 FDC6326L

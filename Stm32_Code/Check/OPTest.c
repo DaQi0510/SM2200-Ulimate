@@ -34,7 +34,7 @@ void OPTest(u32 CheckNum)
 		RJ45_1_WData[0]='M';
 		OfdmXcvrWrite(TRANCEIVER_CONFIG, 2,0x0005);
 		OfdmXcvrWrite(INTERRUPT_MASK,2,0x0009);
-		OfdmXcvrWrite(TX_OUT_VOLTAGE,2, 0x01);
+		OfdmXcvrWrite(TX_OUT_VOLTAGE,2, 0x03);
 		
 		for(i=0;i<NUMBER_OF_CLUSTERS ;i++)
 	  {
@@ -57,7 +57,7 @@ void OPTest(u32 CheckNum)
 		delayms(10);
 		TIM3_Init(10000-1,8400-1);
 	}
-	if(Device==4)
+	if(Device==3)
 	{
 		for(i=0;i<18;i++)
 	  {

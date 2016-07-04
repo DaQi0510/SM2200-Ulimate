@@ -47,7 +47,8 @@ volatile u8 Command[74];             //主机控制命令
 volatile u8 Device;                  //设备号
 volatile u8 ConnectDevice;           //连接设备号
 volatile u8 DeviceScale;             //连接从属级别   0从 1主
-
+volatile u16 ToDevice;               //要发送数据到的设备号
+volatile u16 ReDevice;               //接收到数据的设备号
 u8 DeviceInformation[13]={4,3660/256,3660%256,192,168,1,66,3670/256,3670%256,192,168,1,67};     //设备、IP号等信息
 
 /*******************SM2200部分****************************/
@@ -61,7 +62,7 @@ volatile u32 ChannelReceive;         //标记接收的通道
 volatile u8 SM2200ReceiveFalg;       //当有数据时接收标记
 volatile u16 Noise[18];              //记录通道噪声
 volatile u8  ShakeChannel[18];       //记录通道噪声
-u8 Voltage;                          //记录电压幅值
+volatile u8 Voltage;                 //记录电压幅值
 
 u8 Check[50]={'d','a','q','i',0,5,1,0,6,6,
                12,16,18,21,11,3,15,78,79,80,  
@@ -144,13 +145,12 @@ u32 trr;
 u8 i;
 int main(void)
 {
-
+//  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	delay_init(168);	   //延时函数初始化
-	WWDG_Init(0x7F,0x7b,WWDG_Prescaler_8); 	//窗口看门狗
 	gpio_Init();
   NetPower_On;         //网口电源
 	SM2200Power_On ;
-	
+	Voltage=5;
 	delay_ms(10);
 	AT24C02_Init();     
 	delay_ms(10);
@@ -179,10 +179,125 @@ int main(void)
 	trr++;
 	while(1)
 	{
-		OPTest(trr);
-		trr++;
-		delay_ms(500);
+		if(Device==4)
+		{
+		}
+		delay_ms(100);
 	}
+//		if(Device==3)
+//	  {
+//			ToDevice=1;
+//			ChannelSend =0x3ffff;
+//			for(i=0;i<18;i++)
+//			{
+//				SM2200TxBuf[i][0]=ToDevice/256;
+//				SM2200TxBuf[i][1]=ToDevice%256;
+//				for(l=0;l<18;l++)
+//				{
+//					SM2200TxBuf[i][2*l+2]=l;
+//					SM2200TxBuf[i][2*l+3]=ChannelFrenquence[i];
+//				}
+//				SM2200TxBuf[i][38]=Voltage ;
+//				SM2200TxBuf[i][39]=ChannelSend/65536;
+//				SM2200TxBuf[i][40]=(ChannelSend%65536)/256;
+//				SM2200TxBuf[i][41]=ChannelSend%256;	
+//        SM2200TxBuf[i][42]=Device/256;		
+//				SM2200TxBuf[i][43]=Device%256;
+//				ChannelSize[i]=45;              //数据长度          
+//				ChannelType[i]=0;               //传输类型				
+//			}
+//	  		delayms(1000);
+//  			Message_Send ();
+//			SM2200_Send();
+//			delayms(1000);
+//      if(SM2200ReceiveFalg!=0)
+//			{
+//				SM2200ReceiveFalg=0;
+//				LED5 =!LED5;
+//				Message_Rece();
+//				ChannelReceive=0;
+//			}
+//		}
+//		if(Device==1)
+//		{
+//			if(SM2200ReceiveFalg!=0)
+//			{
+//				delay_ms(30);
+//				ChannelReceive=0;
+//				SM2200ReceiveFalg=0;
+//				LED3 =!LED3 ;
+//				ToDevice=3;
+//				ChannelSend =0x3ffff;
+//				for(i=0;i<18;i++)
+//				{
+//					SM2200TxBuf[i][0]=ToDevice/256;
+//					SM2200TxBuf[i][1]=ToDevice%256;
+//					for(l=0;l<18;l++)
+//					{
+//						SM2200TxBuf[i][2*l+2]=l;
+//						SM2200TxBuf[i][2*l+3]=ChannelFrenquence[i];
+//					}
+//					SM2200TxBuf[i][38]=Voltage ;
+//					SM2200TxBuf[i][39]=ChannelSend/65536;
+//					SM2200TxBuf[i][40]=(ChannelSend%65536)/256;
+//					SM2200TxBuf[i][41]=ChannelSend%256;	
+//					SM2200TxBuf[i][42]=Device/256;		
+//					SM2200TxBuf[i][43]=Device%256;
+//					ChannelSize[i]=45;              //数据长度          
+//					ChannelType[i]=0;               //传输类型				
+//				}
+//				Message_Send ();
+//				SM2200_Send();
+//			}		
+//		}
+//	}
+//			TIM3->CNT=0;
+//			SM2200ReceiveFalg=0;
+//			while(TIM3->CNT<6000)    //延时600ms
+//			{
+//				if(SM2200ReceiveFalg!=0)
+//					break;
+//			}
+//			TIM3->CNT=0;
+//			while(TIM3->CNT<500);   //延时50ms
+//		}
+//		if(Device==1)
+//		{
+//			ToDevice=3;
+//			TIM3->CNT=0;
+//			SM2200ReceiveFalg=0;
+//			while(1)    //延时600ms
+//			{
+//				if(SM2200ReceiveFalg!=0)
+//					break;
+//			}
+//			TIM3->CNT=0;
+//			while(TIM3->CNT<500);   //延时50ms
+//			ChannelSend =0x3ffff;
+//			for(i=0;i<18;i++)
+//			{
+//				SM2200TxBuf[i][0]=ToDevice/256;
+//				SM2200TxBuf[i][1]=ToDevice%256;
+//				for(l=0;l<18;l++)
+//				{
+//					SM2200TxBuf[i][2*l+2]=l;
+//					SM2200TxBuf[i][2*l+3]=ChannelFrenquence[i];
+//				}
+//				SM2200TxBuf[i][38]=Voltage ;
+//				SM2200TxBuf[i][39]=ChannelSend/65536;
+//				SM2200TxBuf[i][40]=(ChannelSend%65536)/256;
+//				SM2200TxBuf[i][41]=ChannelSend%256;	
+//        SM2200TxBuf[i][42]=Device/256;		
+//				SM2200TxBuf[i][43]=Device%256;
+//				ChannelSize[i]=45;              //数据长度          
+//				ChannelType [i]=0;              //传输类型				
+//			}
+//			SM2200_Send();
+//			Message_Send ();
+//		}
+
+//	}
+	
 
 	while(1)
 	{
@@ -204,18 +319,7 @@ int main(void)
 		SM2200_Send();
 		delay_ms(1000);
 	}
-//	while(1)
-//	{
-//		
-//		SendReceivec();
-//		delay_ms(10);
-//	}
-//	while(1)
-//	{
-//		USART_Send(M101,5);
-//	}
-//	if(Device==2)
-//	{
+
 	
 		
 		RJ45_1_Write(M104_1,6);
@@ -234,19 +338,7 @@ int main(void)
 		delay_ms(10000);
 		
 		
-//		while(RJ45_1_Connect==0);
-////	}
-////	if(Device==4)
-////	{
-//			RJ45_2_Init();
-//			delay_ms(100);
-//			RJ45_2_TCP_Init();
-//			while(RJ45_2_Connect==0)
-//			{
-//				LED4 =!LED4 ;
-//				delay_ms (100);
-//			}
-////  }
+
   while(1)
 	{
 		SendReceive();
@@ -256,23 +348,7 @@ int main(void)
 	{
 		FindChatChannel();
 	}
-//		OPTest(trr);
-//		trr++;
-//		delay_ms(1000);
-		
-//		if(Device==4)
-//		{
-//		Simulation(4,1);
-//		delay_ms(5000);
-//		}
-//		if(Device==4)
-//		{
-//			Simulation(4,1);
-//		}
-////		RJ45_1_WData[1]=i;
-//		RJ45_1_WData[2]=i+5;
-//		RJ45_1_WData[3]=i+2;
-//	}
+
 	
 }
 

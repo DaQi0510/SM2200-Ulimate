@@ -4,7 +4,7 @@
 ..\obj\sm2200.o: ..\SYSTEM\sys\sys.h
 ..\obj\sm2200.o: ..\USER\stm32f4xx.h
 ..\obj\sm2200.o: ..\CORE\core_cm4.h
-..\obj\sm2200.o: D:\Keil\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\sm2200.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 ..\obj\sm2200.o: ..\CORE\core_cmInstr.h
 ..\obj\sm2200.o: ..\CORE\core_cmFunc.h
 ..\obj\sm2200.o: ..\CORE\core_cm4_simd.h

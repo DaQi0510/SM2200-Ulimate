@@ -263,7 +263,7 @@ u8 MasterCheck_1(u8 StartVolatage, u8 ToDevice)
 				SM2200TxBuf[i][39]=ChannelSend/65536;
 				SM2200TxBuf[i][40]=(ChannelSend%65536)/256;
 				SM2200TxBuf[i][41]=ChannelSend%256;	  		
-			}	
+			}
 			SM2200_Send();
 			TIM3->CNT=0;
 			SM2200ReceiveFalg=0;

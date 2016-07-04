@@ -1,0 +1,6 @@
+Removed Pin From Net: NetName=GND Pin=C121-1
+Removed Pin From Net: NetName=AFE_VCC Pin=C121-2
+Removed Pin From Net: NetName=GND Pin=C136-1
+Removed Pin From Net: NetName=AFE_VCC Pin=C136-2
+Removed Member From Class: ClassName=U_Power Member=C121
+Removed Member From Class: ClassName=U_Power Member=C136

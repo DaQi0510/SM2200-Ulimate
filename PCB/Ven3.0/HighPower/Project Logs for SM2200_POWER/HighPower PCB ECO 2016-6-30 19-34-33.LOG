@@ -1,0 +1,42 @@
+Added Component: Designator=C1(0805)
+Added Component: Designator=C2(贴片铝电容-8*10.3)
+Added Component: Designator=D1(SMBJ20A)
+Added Component: Designator=J1(三脚航空插头)
+Added Component: Designator=K1(T型接头)
+Added Component: Designator=P1(MOLEX-2)
+Added Component: Designator=U1(FC-LX1D)
+Added Component: Designator=U2(LH10-10B15)
+Added Pin To Net: NetName=GND(AC) Pin=J1-3
+Added Pin To Net: NetName=GND(AC) Pin=U1-1
+Added Pin To Net: NetName=GND(AC) Pin=U2-1
+Added Net: Name=GND(AC)
+Added Pin To Net: NetName=GND Pin=C1-2
+Added Pin To Net: NetName=GND Pin=C2-1
+Added Pin To Net: NetName=GND Pin=D1-1
+Added Pin To Net: NetName=GND Pin=P1-2
+Added Pin To Net: NetName=GND Pin=P1-2
+Added Pin To Net: NetName=GND Pin=P1-2
+Added Pin To Net: NetName=GND Pin=U2-4
+Added Net: Name=GND
+Added Pin To Net: NetName=NetJ1_1 Pin=J1-1
+Added Pin To Net: NetName=NetJ1_1 Pin=K1-1
+Added Net: Name=NetJ1_1
+Added Pin To Net: NetName=NetJ1_2 Pin=J1-2
+Added Pin To Net: NetName=NetJ1_2 Pin=U1-2
+Added Net: Name=NetJ1_2
+Added Pin To Net: NetName=NetK1_2 Pin=K1-2
+Added Pin To Net: NetName=NetK1_2 Pin=U1-3
+Added Net: Name=NetK1_2
+Added Pin To Net: NetName=NetU1_4 Pin=U1-4
+Added Pin To Net: NetName=NetU1_4 Pin=U2-3
+Added Net: Name=NetU1_4
+Added Pin To Net: NetName=NetU1_5 Pin=U1-5
+Added Pin To Net: NetName=NetU1_5 Pin=U2-2
+Added Net: Name=NetU1_5
+Added Pin To Net: NetName=VCC15 Pin=C1-1
+Added Pin To Net: NetName=VCC15 Pin=C2-2
+Added Pin To Net: NetName=VCC15 Pin=D1-2
+Added Pin To Net: NetName=VCC15 Pin=P1-1
+Added Pin To Net: NetName=VCC15 Pin=U2-8
+Added Net: Name=VCC15
+Added Class: Name=HighPower

@@ -3,7 +3,7 @@
 ..\obj\optest.o: ..\SYSTEM\sys\sys.h
 ..\obj\optest.o: ..\USER\stm32f4xx.h
 ..\obj\optest.o: ..\CORE\core_cm4.h
-..\obj\optest.o: D:\Keil\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\optest.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 ..\obj\optest.o: ..\CORE\core_cmInstr.h
 ..\obj\optest.o: ..\CORE\core_cmFunc.h
 ..\obj\optest.o: ..\CORE\core_cm4_simd.h

@@ -1,0 +1,45 @@
+Removed Pin From Net: NetName=GND Pin=C121-1
+Removed Pin From Net: NetName=NTRST Pin=R102-1
+Removed Pin From Net: NetName=VDD3.3 Pin=R102-2
+Removed Pin From Net: NetName=TDI Pin=R103-1
+Removed Pin From Net: NetName=VDD3.3 Pin=R103-2
+Removed Pin From Net: NetName=TMS Pin=R104-1
+Removed Pin From Net: NetName=VDD3.3 Pin=R104-2
+Removed Pin From Net: NetName=TDO Pin=R105-1
+Removed Pin From Net: NetName=VDD3.3 Pin=R105-2
+Removed Pin From Net: NetName=VDD3.3 Pin=R106-2
+Removed Pin From Net: NetName=NTRST Pin=U16-3
+Removed Pin From Net: NetName=TDI Pin=U16-5
+Removed Pin From Net: NetName=GND Pin=U16-6
+Removed Pin From Net: NetName=TMS Pin=U16-7
+Removed Pin From Net: NetName=GND Pin=U16-8
+Removed Pin From Net: NetName=TCK Pin=U16-9
+Removed Pin From Net: NetName=GND Pin=U16-10
+Removed Pin From Net: NetName=GND Pin=U16-12
+Removed Pin From Net: NetName=TDO Pin=U16-13
+Removed Pin From Net: NetName=GND Pin=U16-14
+Removed Pin From Net: NetName=NRST Pin=U16-15
+Removed Pin From Net: NetName=GND Pin=U16-16
+Removed Pin From Net: NetName=GND Pin=U16-18
+Removed Pin From Net: NetName=GND Pin=U16-20
+Removed Member From Class: ClassName=U_MCU Member=C121
+Removed Member From Class: ClassName=U_MCU Member=C121
+Removed Member From Class: ClassName=U_MCU Member=C121
+Removed Member From Class: ClassName=U_MCU Member=R102
+Removed Member From Class: ClassName=U_MCU Member=R102
+Removed Member From Class: ClassName=U_MCU Member=R102
+Removed Member From Class: ClassName=U_MCU Member=R103
+Removed Member From Class: ClassName=U_MCU Member=R103
+Removed Member From Class: ClassName=U_MCU Member=R103
+Removed Member From Class: ClassName=U_MCU Member=R105
+Removed Member From Class: ClassName=U_MCU Member=R105
+Removed Member From Class: ClassName=U_MCU Member=R105
+Change Component DesignItemId : Designator=U16 Old DesignItemId=J New DesignItemId=Header 2X2
+Change Component Footprint: Designator=U16 Old Footprint=JTAG-20 New Footprint=HDR2X2
+Change Component Comment : Designator=U16 Old Comment=JTAG New Comment=Header 2X2
+Added Pin To Net: NetName=VDD3.3 Pin=R104-1
+Added Pin To Net: NetName=TMS Pin=R104-2
+Added Pin To Net: NetName=GND Pin=R106-2
+Added Pin To Net: NetName=TCK Pin=U16-1
+Added Pin To Net: NetName=NRST Pin=U16-2
+Added Pin To Net: NetName=TMS Pin=U16-3

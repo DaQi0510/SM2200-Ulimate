@@ -3,7 +3,7 @@
 ..\obj\devicetodevice.o: ..\SYSTEM\sys\sys.h
 ..\obj\devicetodevice.o: ..\USER\stm32f4xx.h
 ..\obj\devicetodevice.o: ..\CORE\core_cm4.h
-..\obj\devicetodevice.o: D:\Keil\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\devicetodevice.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 ..\obj\devicetodevice.o: ..\CORE\core_cmInstr.h
 ..\obj\devicetodevice.o: ..\CORE\core_cmFunc.h
 ..\obj\devicetodevice.o: ..\CORE\core_cm4_simd.h

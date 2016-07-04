@@ -14,3 +14,5 @@ E:\SM2200-Ultimate\PC_Code\自适应显示\WindowsFormsApplication1\WindowsForms
 E:\SM2200-Ultimate\PC_Code\自适应显示\WindowsFormsApplication1\WindowsFormsApplication1\obj\x86\Debug\WindowsFormsApplication1.csproj.GenerateResource.Cache
 E:\SM2200-Ultimate\PC_Code\自适应显示\WindowsFormsApplication1\WindowsFormsApplication1\bin\Debug\WindowsFormsApplication1.exe
 E:\SM2200-Ultimate\PC_Code\自适应显示\WindowsFormsApplication1\WindowsFormsApplication1\bin\Debug\WindowsFormsApplication1.pdb
+F:\SM2200-Ultimate\PC_Code\自适应显示\WindowsFormsApplication1\WindowsFormsApplication1\obj\x86\Debug\WindowsFormsApplication1.exe
+F:\SM2200-Ultimate\PC_Code\自适应显示\WindowsFormsApplication1\WindowsFormsApplication1\obj\x86\Debug\WindowsFormsApplication1.pdb

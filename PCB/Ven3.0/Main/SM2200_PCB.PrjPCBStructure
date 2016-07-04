@@ -1,0 +1,7 @@
+Record=SheetSymbol|SourceDocument=Top.SchDoc|Designator=U_MCU|SchDesignator=U_MCU|FileName=MCU.SchDoc|SymbolType=Normal|RawFileName=MCU.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol
+Record=SheetSymbol|SourceDocument=Top.SchDoc|Designator=U_Module|SchDesignator=U_Module|FileName=Module.SchDoc|SymbolType=Normal|RawFileName=Module.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol
+Record=SheetSymbol|SourceDocument=Top.SchDoc|Designator=U_Power|SchDesignator=U_Power|FileName=Power.SchDoc|SymbolType=Normal|RawFileName=Power.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol
+Record=SheetSymbol|SourceDocument=Top.SchDoc|Designator=U_SM2200|SchDesignator=U_SM2200|FileName=SM2200.SchDoc|SymbolType=Normal|RawFileName=SM2200.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol
+Record=SheetSymbol|SourceDocument=Top.SchDoc|Designator=U_W5500_1|SchDesignator=U_W5500_1|FileName=W5500_1.SchDoc|SymbolType=Normal|RawFileName=W5500_1.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol
+Record=SheetSymbol|SourceDocument=Top.SchDoc|Designator=U_W5500_2|SchDesignator=U_W5500_2|FileName=W5500_2.SchDoc|SymbolType=Normal|RawFileName=W5500_2.SchDoc|DesignItemId= |SourceLibraryName= |ObjectKind=Sheet Symbol
+Record=TopLevelDocument|FileName=Top.SchDoc

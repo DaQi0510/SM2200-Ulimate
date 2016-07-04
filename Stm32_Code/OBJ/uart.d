@@ -3,7 +3,7 @@
 ..\obj\uart.o: ..\FWLIB\inc\stm32f4xx_gpio.h
 ..\obj\uart.o: ..\USER\stm32f4xx.h
 ..\obj\uart.o: ..\CORE\core_cm4.h
-..\obj\uart.o: D:\Keil\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\uart.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 ..\obj\uart.o: ..\CORE\core_cmInstr.h
 ..\obj\uart.o: ..\CORE\core_cmFunc.h
 ..\obj\uart.o: ..\CORE\core_cm4_simd.h

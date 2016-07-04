@@ -4,7 +4,7 @@
 ..\obj\sendreceive.o: ..\FWLIB\inc\stm32f4xx_gpio.h
 ..\obj\sendreceive.o: ..\USER\stm32f4xx.h
 ..\obj\sendreceive.o: ..\CORE\core_cm4.h
-..\obj\sendreceive.o: D:\Keil\ARM\ARMCC\Bin\..\include\stdint.h
+..\obj\sendreceive.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 ..\obj\sendreceive.o: ..\CORE\core_cmInstr.h
 ..\obj\sendreceive.o: ..\CORE\core_cmFunc.h
 ..\obj\sendreceive.o: ..\CORE\core_cm4_simd.h

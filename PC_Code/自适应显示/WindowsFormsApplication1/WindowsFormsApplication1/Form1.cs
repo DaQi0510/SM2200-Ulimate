@@ -18,6 +18,8 @@ namespace WindowsFormsApplication1
         static byte DisConnect = 0x01;      //命令地址0x01，断开连接
         static byte Message_Send = 0x02;    //载波设备发送信息
         static byte Message_Rece = 0x03;    //载波设备接收信息
+        static byte CheckChannel = 0x04;    //查找可用通道模式
+        static byte SendRece = 0x05;        //收发数据模式
         #endregion
         IPAddress IP_Device;
         IPEndPoint EndPoint_Device = null;
@@ -34,25 +36,49 @@ namespace WindowsFormsApplication1
         int Port4 = 3670;
         static StringBuilder Information =new StringBuilder (); //临时存储文本框每行需要显示的信息
         static byte  ConnectDevice;         //连接的设备号
+        static byte  ConnectToDevice;       //连接的设备号
+        static byte  StartVoltage;          //起始电压
+        static byte DeviceScale;            //从属级别
+        static byte SendScale;              //发送主从级别
+        static byte SendVoltage;            //发送电压
         static int DataLength;              //接收到数据长度
         static int num;
         static int numlast;
         static bool ConnectFlag;
         static bool CommandFlag;
-      
+        static int Numi;
         public Form1()
         {
             InitializeComponent();
+            timer1.Enabled = true;
+            timer1.Start();
             Receive .Event +=new EventHandler(Receive_Event);
             Info .Event +=new EventHandler(Info_Event);
+            //建立通信设备号
             ConnectDevice = 1;
-
             comboBox1.Text = "1";
             comboBox1.Items.Add(1);
             comboBox1.Items.Add(2);
             comboBox1.Items.Add(3);
             comboBox1.Items.Add(4);
             comboBox1.SelectedIndex = 0;
+            //主从关系
+            DeviceScale = 1;
+            comboBox2.Text = "主";
+            comboBox2.Items.Add("主");
+            comboBox2.Items.Add("从");
+            comboBox2.SelectedIndex = 0;
+            //发送主从级别
+            SendScale  = 1;
+            comboBox3.Text = "主";
+            comboBox3.Items.Add("主");
+            comboBox3.Items.Add("从");
+            comboBox3.SelectedIndex = 0;
+            //初始幅值
+            textBox1.Text = "3";
+            textBox2.Text = "3";
+            StartVoltage = 3;
+            SendVoltage = 3;
             Control.CheckForIllegalCrossThreadCalls = false;
         }
         #region  选择需要连接的设备号
@@ -122,7 +148,8 @@ namespace WindowsFormsApplication1
                 DelayMs(10);
                 TData[0] = 0x3C;  //<
                 TData[1] = Connect;
-                TData[2] = 0x3E; //>
+                TData[2] = 0x3E;  //>
+                DelayMs(5);
                 SendMessage(3);
                 ReceiveMessage();
             }
@@ -154,6 +181,8 @@ namespace WindowsFormsApplication1
             {
                 Socket Socket_Device1 = (Socket)er.AsyncState;
                 DataLength = Socket_Device1.EndReceive(er);
+                ReceiveMessage();
+                Numi++;
                 Receive.Received = true;
             }
             catch (Exception ex)
@@ -201,17 +230,17 @@ namespace WindowsFormsApplication1
 
         void Receive_Event(object sender, EventArgs e)    //接收到设备数据触发事件
         {
+            byte ChannelNum;
+            int Kong;
             if((RData[0]==0x3C)&&(RData[DataLength-1]==0x3E)) //判断数据包是否满足约定首尾格式
             {
                 switch (RData[1])
                 {
-
                     case 0x00 :  //建立连接
                         Information.Length = 0;
                         Information.Append(System .DateTime .Now .ToString ()+" ");
                         Information.Append("与设备 " + ConnectDevice.ToString() + " 成功建立连接" + System.Environment.NewLine);
-                        Info.Update = true;
-                        ReceiveMessage();
+                        Info.Update = true;  
                         break;
                     case 0x01:
                         Socket_Device.Dispose();
@@ -220,42 +249,126 @@ namespace WindowsFormsApplication1
                         Information.Append("与设备 " + ConnectDevice.ToString() + " 断开连接" + System.Environment.NewLine);
                         Info.Update = true;
                         break;
-                    case 0x03:      //设备发送信息
+                    case 0x02:      //设备发送信息
                         Information.Length = 0;
                         Information.Append(System.DateTime.Now.ToString() + " ");
-                        Information.Append("发送数据到设备 " + (RData[2] * 256 + RData[3]).ToString()+" 通道数：");
-
+                        Information.Append("发送数据到设备 " + (RData[2] * 256 + RData[3]).ToString() + " 幅值：" + RData[40].ToString()+" " + System.Environment.NewLine);
+                        Information.Append("通道：");
+                        Kong = 0;
+                        for (byte i = 0; i < 18; i++)
+                        {
+                            if (RData[2 * i + 4] != 0)
+                            {
+                                ChannelNum = RData[2 * i + 4];
+                                while (Information.Length - Kong <= 3)
+                                    Information.Append(" ");
+                                Kong = Information.Length;
+                                Information.Append(ChannelNum.ToString());
+                                
+                            }
+                        }
+                        Information.Append(System.Environment.NewLine);
+                        Information.Append("频点：");
+                        Kong = 0;
+                        for (byte i = 0; i < 18; i++)
+                        {
+                            if (RData[2 * i + 5] != 0)
+                            {
+                                ChannelNum = RData[2 * i + 5];
+                                while (Information.Length + -Kong <= 3)
+                                    Information.Append(" ");
+                                Kong= Information.Length;
+                                Information.Append(ChannelNum.ToString());    
+                            }
+                        }
+                        Information.Append(System.Environment.NewLine);
+                        Info.Update = true;
+                        TData[0] = 0x3C;  //<
+                        TData[1] = Message_Send;
+                        TData[2] = 0x3E; //>
+                        SendMessage(3);     //回传确认信息
+                        break;
+                    case 0x03:      //设备接收信息
+                        Information.Length = 0;
+                        Information.Append(System.DateTime.Now.ToString() + " ");
+                        Information.Append("接收设备 " + (RData[2] * 256 + RData[3]).ToString() + "数据，"+" 幅值：" + RData[40].ToString() + " " + System.Environment.NewLine);
+                        Information.Append("通道：");
+                        Kong = 0;
+                        for (byte i = 0; i < 18; i++)
+                        {
+                            if (RData[2 * i + 4] != 0)
+                            {
+                                ChannelNum = RData[2 * i + 4];
+                                while (Information.Length - Kong <= 3)
+                                    Information.Append(" ");
+                                Kong = Information.Length;
+                                Information.Append(ChannelNum.ToString()+" ");
+                            }
+                        }
+                        Information.Append(System.Environment.NewLine);
+                        Information.Append("频点：");
+                        Kong = 0;
+                        for (byte i = 0; i < 18; i++)
+                        {
+                            if (RData[2 * i + 5] != 0)
+                            {
+                                ChannelNum = RData[2 * i + 5];
+                                while (Information.Length - Kong <= 3)
+                                    Information.Append(" ");
+                                Kong = Information.Length;
+                                Information.Append(ChannelNum.ToString()+" ");
+                            }
+                        }
+                        Information.Append(System.Environment.NewLine);
+                        Info.Update = true;
+                        TData[0] = 0x3C;  //<
+                        TData[1] = Message_Rece ;
+                        TData[2] = 0x3E; //>
+                        SendMessage(3);     //回传确认信息
+                        break;
+                    case 0x04:             //通信频点信息查找
+                        Information.Length = 0;
+                        Information.Append(System.DateTime.Now.ToString() + " ");
+                        Information.Append("设备配置成功！");
+                        Information.Append(System.Environment.NewLine);
+                        Info.Update = true;
                         break;
                 }
             }
         }
     
-        //连接设备
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (comboBox1.SelectedIndex == 0)
-               TData[2]=1;
-            if (comboBox1.SelectedIndex == 1)
-               TData[2]=2;
-            if (comboBox1.SelectedIndex == 2)
-               TData[2]=3;
-            if (comboBox1.SelectedIndex == 3)
-               TData[2] = 4;
-                
-        }
-        //主从选择
+       
+        //断开连接
         private void button2_Click(object sender, EventArgs e)
         {
             TData[0] = 0x3C;  //<
             TData[1] = DisConnect;
             TData[2] = 0x3E; //>
             SendMessage(3);
-            ReceiveMessage();
         }
-
+        //通道通信设置
         private void button3_Click(object sender, EventArgs e)
         {
-
+            TData[0] = 0x3C;  //<
+            TData[1] = CheckChannel;  //<
+            TData[2] = 0;
+            TData[3] = ConnectToDevice;
+            TData[4] = DeviceScale;
+            TData[5] = StartVoltage;
+            TData[6] = 0x3E; //>
+            Information.Length = 0;
+            Information.Append(System.DateTime.Now.ToString() + " ");
+            if (DeviceScale == 1)    //主动模式
+            {
+                Information.Append("与设备 "+ConnectToDevice.ToString ()+" 建立通信信道测试。起始电压幅值 "+ StartVoltage.ToString());
+            }
+            if (DeviceScale == 0)    //从模式
+            {
+                Information.Append("等待设备 " + ConnectToDevice.ToString() + " 建立通信信道测试。起始电压幅值 " + StartVoltage.ToString());
+            }
+            Information.Append(System.Environment.NewLine);
+            Info.Update = true;
+            SendMessage(7);
         }
         public static void DelayMs(int MillSecond)   //延时函数，延时时间Ms
         {
@@ -264,6 +377,73 @@ namespace WindowsFormsApplication1
             {
                 Application.DoEvents();
             }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            TData[0] = 0x3C;  //<
+            TData[1] = SendRece ;  //<
+            TData[2] = SendVoltage ;
+            TData[3] = 0x3E; //>
+            Information.Length = 0;
+            Information.Append(System.DateTime.Now.ToString() + " ");
+            Information.Append("开始收发模式：");
+            if (SendScale  == 1)
+            {
+                Information.Append("主");
+            }
+            else
+            {
+                Information.Append("从");
+            }
+            Information.Append(System.Environment.NewLine);
+            Info.Update = true;
+            SendMessage(4);
+        }
+        //通信设备选择
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox1.SelectedIndex == 0)
+                ConnectToDevice =1;
+            if (comboBox1.SelectedIndex == 1)
+                ConnectToDevice = 2;
+            if (comboBox1.SelectedIndex == 2)
+                ConnectToDevice = 3;
+            if (comboBox1.SelectedIndex == 3)
+                ConnectToDevice = 4;
+
+        }
+        //开始幅值设定
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            StartVoltage = (byte)int.Parse(textBox1.Text.Trim());
+        }
+        //设备从属级别
+        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+           
+            if (comboBox2.SelectedIndex == 0)
+                DeviceScale  = 1;
+            if (comboBox2.SelectedIndex == 1)
+                DeviceScale = 0;
+        }
+
+        private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox3.SelectedIndex == 0)
+                SendScale = 1;
+            if (comboBox3.SelectedIndex == 1)
+                SendScale = 0;
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+            SendVoltage = (byte)int.Parse(textBox2.Text.Trim());
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            label4.Text = Numi.ToString();
         }
     }
     class Info         //为更新显示信息添加驱动事件

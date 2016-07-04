@@ -12,17 +12,15 @@ void WWDG_Init(u8 tr,u8 wr,u32 fprer)
  
 	NVIC_InitTypeDef NVIC_InitStructure;
  
-	
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_WWDG,ENABLE); //使能窗口看门狗时钟
 	
 	WWDG_CNT=tr&WWDG_CNT;   //初始化WWDG_CNT. 
 	WWDG_SetPrescaler(fprer); //设置分频值
 	WWDG_SetWindowValue(wr); //设置窗口值
-//	WWDG_SetCounter(WWDG_CNT);//设置计数值
 	WWDG_Enable(WWDG_CNT);  //开启看门狗
 	
 	NVIC_InitStructure.NVIC_IRQChannel=WWDG_IRQn;  //窗口看门狗中断
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0x02;  //抢占优先级为2
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0x03;  //抢占优先级为2
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority=0x03;					//子优先级为3
 	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;  //使能窗口看门狗
 	NVIC_Init(&NVIC_InitStructure);
@@ -36,13 +34,13 @@ void WWDG_IRQHandler(void)
 	u8 i;
 	WWDG_SetCounter(WWDG_CNT); //重设窗口看门狗值
 	WWDG_ClearFlag();          //清除提前唤醒中断标志	
-	for(i=0;i<2;i++);          //此处延时一下，等寄存器稳定
+	for(i=0;i<4;i++);          //此处延时一下，等寄存器稳定
 }
 
 void Set_WWDG(void)   
 {
-  u8 i;
-	if((WWDG->CR&0x7f)<0x7e)
-		WWDG->CR=0x7f;
-	for(i=0;i<2;i++);          //此处延时一下，等寄存器稳定
+//  u8 i;
+//	if((WWDG->CR&0x7f)<0x7e)
+//		WWDG->CR=0x7f;
+//	for(i=0;i<4;i++);          //此处延时一下，等寄存器稳定
 }

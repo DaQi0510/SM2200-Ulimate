@@ -13,8 +13,10 @@ extern volatile u32 ChannelReceive;         //标记接收的通道
 extern volatile u8 SM2200ReceiveFalg;       //当有数据时接收标记
 
 /*******************设备部分**************************/
-extern volatile u8 Device;            //设备号
+extern volatile u8  Device;            //设备号
+extern volatile u16 ToDevice;
 extern volatile u8 Command[74];       //主机控制命令 
+extern volatile u8 Voltage;           //记录电压幅值
 
 
 
@@ -59,7 +61,7 @@ void SM2200_Init(void)
 	   Voltage=0.03*寄存器的值     当TRANCEIVER_CONFIG的位置零时，此寄存器可不考虑
 		 SM2200默认最大输出范围1.53V
 	*/
-	OfdmXcvrWrite(TX_OUT_VOLTAGE,2,0x03);//以为着最多可开2~3个通道
+	OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);//以为着最多可开2~3个通道
 	for(i=0;i<NUMBER_OF_CLUSTERS ;i++)
 	{
 		OfdmXcvrWrite(CLUSTER_SELECT,2,i);    //通道选择
@@ -129,7 +131,7 @@ void SetSm2200Frenquence(u8 ChannelN)
 void SM2200_Send(void)
 {
 	u8 i,Channel;
-	Set_WWDG();
+	NVIC_EXTI(0);
 	for(Channel =0;Channel <18;Channel ++)
 	{
 		if(ChannelSend &(1<<Channel))
@@ -146,6 +148,7 @@ void SM2200_Send(void)
 		}
 	}
 	OfdmXcvrWrite(SPI_SEND_PKTS,3,ChannelSend);
+	NVIC_EXTI(1);
 	ChannelSend=0;
 }
 //接收函数，中断内执行
@@ -428,7 +431,17 @@ u8 SPI3_ReadWriteByte(u8 TxData)
   while (SPI_I2S_GetFlagStatus(SPI3, SPI_I2S_FLAG_RXNE) == RESET){} //等待接收完一个byte   
 	return SPI_I2S_ReceiveData(SPI3); //返回通过SPIx最近接收的数据	
 }
-
+//屏蔽所有外部中断
+void NVIC_EXTI(u8 En)
+{
+	/*****************
+	Line0->SM2200 
+	Line5->W5200_2  
+	Line14->W5200_1  
+	*****************/
+	if(En)EXTI->IMR|=1<<0 | 1<<5 | 1<<14;   //不屏蔽中断
+  else EXTI->IMR&=~(1<<0 | 1<<5 | 1<<14); //屏蔽中断
+}
 
 
 
