@@ -32,8 +32,8 @@ namespace WindowsFormsApplication1
         int Port2 = 3630;
         string IP3 = "192.168.1.65";
         int Port3 = 3650;
-        string IP4 = "192.168.1.67";
-        int Port4 = 3670;
+        string IP4 = "192.168.1.68";
+        int Port4 = 3680;
         static StringBuilder Information =new StringBuilder (); //临时存储文本框每行需要显示的信息
         static byte  ConnectDevice;         //连接的设备号
         static byte  ConnectToDevice;       //连接的设备号
@@ -47,6 +47,7 @@ namespace WindowsFormsApplication1
         static bool ConnectFlag;
         static bool CommandFlag;
         static int Numi;
+        static byte Numl;
         public Form1()
         {
             InitializeComponent();
@@ -54,6 +55,7 @@ namespace WindowsFormsApplication1
             timer1.Start();
             Receive .Event +=new EventHandler(Receive_Event);
             Info .Event +=new EventHandler(Info_Event);
+            ConnectFlag = false;
             //建立通信设备号
             ConnectDevice = 1;
             comboBox1.Text = "1";
@@ -150,7 +152,9 @@ namespace WindowsFormsApplication1
                 TData[1] = Connect;
                 TData[2] = 0x3E;  //>
                 DelayMs(5);
-                SendMessage(3);
+                
+            //    SendMessage(3);
+                ConnectFlag = true;
                 ReceiveMessage();
             }
             catch (Exception ex)
@@ -443,7 +447,20 @@ namespace WindowsFormsApplication1
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            label4.Text = Numi.ToString();
+            if (ConnectFlag == true)
+            {
+                Numl++;
+                if (Numl > 155)
+                    Numl = 0;
+                for (byte i = 0; i < 100; i++)
+                {
+                   
+                    TData[i] =Convert.ToByte(Numl + i);
+                }
+                SendMessage(100);
+                label4.Text = Numl.ToString();
+            }
+            label6.Text = Numi.ToString();
         }
     }
     class Info         //为更新显示信息添加驱动事件
