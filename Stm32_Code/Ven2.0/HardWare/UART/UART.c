@@ -93,6 +93,6 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 			StartFlag=0;
 		}
 	}  
-  LED3 =!LED3 ;	
+  LED2 =!LED2 ;	
 } 
 

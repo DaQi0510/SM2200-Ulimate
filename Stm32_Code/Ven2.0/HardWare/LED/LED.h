@@ -10,9 +10,9 @@
 #include "delay.h"
 
 #define LED1 PEout(1)	// 红色
-#define LED2 PEout(0)	//蓝色
-#define LED3 PBout(9)	// 红色
-#define LED4 PBout(8)	//蓝色
+#define LED2 PBout(9)	//蓝色
+#define LED3 PBout(8)	// 红色
+#define LED4 PEout(0)	//蓝色
 #define LED5 PBout(7)	//蓝色
 
 #define NetPower_On PGout(7)=1;  //网口电源开

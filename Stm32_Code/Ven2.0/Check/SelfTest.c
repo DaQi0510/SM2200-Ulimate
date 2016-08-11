@@ -33,7 +33,7 @@ void SelfTest(u32 CheckNum)
 		RJ45_1_WData[0]='M';
 		OfdmXcvrWrite(TRANCEIVER_CONFIG, 2,0x0005);
 		OfdmXcvrWrite(INTERRUPT_MASK,2,0x0009);
-		OfdmXcvrWrite(TX_OUT_VOLTAGE,2, 0x05);
+		OfdmXcvrWrite(TX_OUT_VOLTAGE,2, 0x04);
 		
 		for(i=0;i<NUMBER_OF_CLUSTERS;i++)
 	  {
@@ -56,7 +56,7 @@ void SelfTest(u32 CheckNum)
 		delayms(10);
 		TIM3_Init(10000-1,840-1);
 	}
-	for(i=0;i<5;i++)
+	for(i=0;i<18;i++)
 	{
 		for(l=0;l<80;l++)
 		{
@@ -66,7 +66,7 @@ void SelfTest(u32 CheckNum)
 	j++;
 	if(j>=150)
 		j=0;
-	for(i=0;i<5;i++)
+	for(i=0;i<18;i++)
 	{
 		ChannelSend |=1<<i;
 		ChannelSize [i]=35;
@@ -74,18 +74,18 @@ void SelfTest(u32 CheckNum)
 	}
 	SM2200_Send();
 	ChannelSend=0;
-	while(SM2200ReceiveFalg!=1);
-	TIM3->CNT=0;
-	while(ChannelReceive!=0x03ffff)
-	{
-		time=TIM3->CNT;
-		if(time>1000)
-			break;
-	}
-	if(ChannelReceive==0x03ffff)
-	{
-		LED1 =!LED1;
-	}
+//	while(SM2200ReceiveFalg!=1);
+//	TIM3->CNT=0;
+//	while(ChannelReceive!=0x03ffff)
+//	{
+//		time=TIM3->CNT;
+//		if(time>1000)
+//			break;
+//	}
+//	if(ChannelReceive==0x03fffd)
+//	{
+//		LED5 =!LED5;
+//	}
 	if(CheckNum<1000)
 	receivenum[CheckNum]=ChannelReceive;
 	ChannelReceive=0;

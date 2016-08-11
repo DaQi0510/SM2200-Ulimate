@@ -31,10 +31,10 @@ void OPTest(u32 CheckNum)
 	  delayms(10);
 	  RST_Low;	
 	  delayms(10);
-		RJ45_1_WData[0]='M';
+//		RJ45_1_WData[0]='M';
 		OfdmXcvrWrite(TRANCEIVER_CONFIG, 2,0x0005);
 		OfdmXcvrWrite(INTERRUPT_MASK,2,0x0009);
-		OfdmXcvrWrite(TX_OUT_VOLTAGE,2, 0x03);
+		OfdmXcvrWrite(TX_OUT_VOLTAGE,2, 0x05);
 		
 		for(i=0;i<NUMBER_OF_CLUSTERS ;i++)
 	  {
@@ -57,7 +57,7 @@ void OPTest(u32 CheckNum)
 		delayms(10);
 		TIM3_Init(10000-1,8400-1);
 	}
-	if(Device==3)
+	if(Device==6)
 	{
 		for(i=0;i<18;i++)
 	  {
@@ -69,7 +69,7 @@ void OPTest(u32 CheckNum)
 	  j++;
 		if(j>=150)
 			j=0;
-		for(i=15;i<18;i++)
+		for(i=0;i<18;i++)
 		{
 			ChannelSend |=1<<i;
 			ChannelSize [i]=35;
@@ -77,10 +77,10 @@ void OPTest(u32 CheckNum)
 		}
 		SM2200_Send ();
 		ChannelSend=0;
-	  LED1 =!LED1 ;
+	  LED3 =!LED3 ;
 		delay_ms(500);
 	}
-	if(Device==1)
+	if(Device==5)
 	{
 
 		if(SM2200ReceiveFalg==1)
@@ -94,20 +94,20 @@ void OPTest(u32 CheckNum)
 			}
 			if(ChannelReceive==0x03ffff)
 			{
-				GPIO_ToggleBits(GPIOE,GPIO_Pin_1);
+				LED3 =!LED3 ;
 			}
 			for(i=0;i<18;i++)
 			{
 				OfdmXcvrWrite(CLUSTER_SELECT,2,i);    //Í¨µÀÑ¡Ôñ
-			Noise[i]=OfdmXcvrRead(CARRIER_NOISE,2);
+				Noise[i]=OfdmXcvrRead(CARRIER_NOISE,2);
 			}
-			if(BER_Flag==1)
-			{
-				RJ45_1_WData[1]=(ChannelReceive&0xff0000)>>16;
-				RJ45_1_WData[2]=(ChannelReceive&0x00ff00)>>8;
-				RJ45_1_WData[3]=ChannelReceive&0x0000ff;
-//				RJ45_1_Write(RJ45_1_WData,8);
-			}
+//			if(BER_Flag==1)
+//			{
+//				RJ45_1_WData[1]=(ChannelReceive&0xff0000)>>16;
+//				RJ45_1_WData[2]=(ChannelReceive&0x00ff00)>>8;
+//				RJ45_1_WData[3]=ChannelReceive&0x0000ff;
+////				RJ45_1_Write(RJ45_1_WData,8);
+//			}
 			receivenum[j]=ChannelReceive;
 			j++;
 			ChannelReceive=0;

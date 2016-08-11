@@ -131,6 +131,7 @@ u8 Len;
 								0x0A->RJ45_2IP号
 								0x0B->RJ45_2IP号
 								0x0C->RJ45_2IP号
+								0x0E->主从模式  主模式：
 */
 
 u32 receivenum[1000];
@@ -148,38 +149,31 @@ int main(void)
 	delay_ms(10);
 	AT24C02_Init();     
 	delay_ms(10);
-	SetDeviceInformation(5,DeviceInformation,13);
-	delay_ms(10);
+//	SetDeviceInformation(6,DeviceInformation,13);  //设置设备号、IP地址等信息
 	GetDeviceInformation();
-  delay_ms (10);
 	for(i=0;i<18;i++)
 	{
 		ChannelFrenquence[i]=20+4*i;
 	}
-	SM2200_Init();
+//	SM2200_Init();
 	delay_ms(10);
 	TIM3_Init(10000,8399);
-	uart_init(9600);
+//	uart_init(9600);
 	
-	RJ45_1_Connect=0;
-	RJ45_2_Connect=0;
-	RJ45_1_ReceiveFlag=0;
+//	RJ45_1_Init();
+//	RJ45_1_TCP_ServiceInit();
 
-	RJ45_1_Init();
-	delay_ms(100);
-	RJ45_1_TCP_ServiceInit();
-
+	RJ45_2_Init();
+	RJ45_2_TCP_ServiceInit();
+  delay_ms(10);
+	TIM4_Init();    //用于设备运行指示，1S进一次中断
 	trr++;
 	while(1)
 	{
 		SelfTest(trr);
 		trr++;
 		delay_ms(1000);
-		LED2=!LED2;
 	}
-
-
-	
 }
 
 

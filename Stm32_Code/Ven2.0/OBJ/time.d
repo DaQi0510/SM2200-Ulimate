@@ -25,6 +25,7 @@
 ..\obj\time.o: ..\FWLIB\inc\stm32f4xx_fsmc.h
 ..\obj\time.o: ..\SYSTEM\sys\sys.h
 ..\obj\time.o: ..\FWLIB\inc\stm32f4xx_rcc.h
-..\obj\time.o: ..\HardWare\LED\led.h
+..\obj\time.o: ..\HardWare\W5200\W5200.h
 ..\obj\time.o: ..\FWLIB\inc\stm32f4xx_syscfg.h
+..\obj\time.o: ..\HardWare\LED\led.h
 ..\obj\time.o: ..\SYSTEM\delay\delay.h

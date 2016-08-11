@@ -223,7 +223,6 @@
  /* Sn_MR values on MACRAW MODE */
 #define Sn_MR_MIP6N                  0x10     /**< IPv6 packet Block */
 #define Sn_MR_MMB                    0x20     /**< IPv4 Multicasting Block */
-//#define Sn_MR_BCASTB                 0x40     /**< Broadcast blcok */
 #define Sn_MR_MFEN                   0x80     /**< support MAC filter enable */
 
 /* Sn_CR values */
@@ -300,25 +299,22 @@ void RJ45_1_Write_Buf(u32 Address,u8 *Buf,u16 Len);
 u8 RJ45_1_Read_Register(u32 Address);
 void RJ45_1_Read_Buf(u32 Address,u8 *Buf,u16 Len);
 u8 RJ45_1_ReadWriteByte(u8 TxData);
-//u8 RJ45_1_TCP_ClientInit(void);
-//u8 RJ45_1_TCP_ServiceInit(void);
-//void RJ45_1_TcpOpen(void);
-//void RJ45_1_Read(u8 *RData);
-//void RJ45_1_Write(u8 *WData,u16 Len);
-//void RJ45_1_Write_Register(u16 Address,u8 Data);
-//u8 RJ45_1_Read_Register(u16 Address);
 
 
 void RJ45_2_GPIO_Init(void);
 void RJ45_2_Reset(void);
 void RJ45_2_Init(void);
-u8 RJ45_2_TCP_Init(void);
+u8 RJ45_2_TCP_ServiceInit(void);
 void RJ45_2_Read(u8 *RData);
 void RJ45_2_Write(u8 *WData,u16 Len);
-void RJ45_2_Write_Register(u16 Address,u8 Data);
-u8 RJ45_2_Read_Register(u16 Address);
+void CloseSocket_RJ45_2(void);
+void RJ45_2_Write_Register(u32 Address,u8 Data);
+void RJ45_2_Write_Buf(u32 Address,u8 *Buf,u16 Len);
+u8 RJ45_2_Read_Register(u32 Address);
+void RJ45_2_Read_Buf(u32 Address,u8 *Buf,u16 Len);
 u8 RJ45_2_ReadWriteByte(u8 TxData);
-void RJ45_2_Deals(void); //接收数据处理
+
+void RJ45_2_Deal(void); //接收数据处理
 void Message_Send(void);    //将发送信息反馈到电脑
 void Message_Rece(void);//将接收信息反馈到电脑
 void ShakeHand(void);

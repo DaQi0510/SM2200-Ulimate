@@ -6,5 +6,7 @@
 #include "stm32f4xx_rcc.h"
 
 void TIM3_Init(u16 arr,u16 psc) ;
+void TIM4_Init(void);
+
 
 #endif
