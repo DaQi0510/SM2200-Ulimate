@@ -45,7 +45,7 @@
 volatile u8 Command[74];             //主机控制命令 
 
 volatile u8 Device;                  //设备号
-volatile u8 ConnectDevice;           //连接设备号
+volatile u8 ConnectDevice[7];        //连接设备号
 volatile u8 DeviceScale;             //连接从属级别   0从 1主
 volatile u16 ToDevice;               //要发送数据到的设备号
 volatile u16 ReDevice;               //接收到数据的设备号
@@ -85,6 +85,8 @@ u16 RJ45_1_RLength;  //记录接收到数据长度
 u8 RJ45_1_Connect;  //连接状态
 u8 RJ45_1_ReceiveFlag;  //标记网口1是否接收到数据
 u8 RJ45_1_Send;     //发送状态
+u8 RJ45_1_DirIP[4]={192,168,1,66};   //对方服务器IP地址
+u16 RJ45_1_Dir_Port;
 u8 RJ45_2_MAC[6]={0x00, 0x08, 0xDC, 0x01, 0x02, 0x03};
 u8 RJ45_2_IP[4]={192,168,1,66};
 u8 RJ45_2_GateWay[4]={192, 168,1, 1};
@@ -131,7 +133,11 @@ u8 Len;
 								0x0A->RJ45_2IP号
 								0x0B->RJ45_2IP号
 								0x0C->RJ45_2IP号
-								0x0E->主从模式  主模式：
+								0x0D--0x10 RJ45_1_DirIP(目标服务器地址)
+								0x11--0x12 RJ45_1_Dir_Port（目标服务器端口号）
+								0x13->主从模式  主模式1 从模式0：
+								0x14->发送电压幅值
+								0x15->0x1B载波通信设备连接号
 */
 
 u32 receivenum[1000];
@@ -155,24 +161,29 @@ int main(void)
 	{
 		ChannelFrenquence[i]=20+4*i;
 	}
-//	SM2200_Init();
+	SM2200_Init();
 	delay_ms(10);
 	TIM3_Init(10000,8399);
+	RJ45_1_DirIP[0]=192;
+	RJ45_1_DirIP[1]=168;
+	RJ45_1_DirIP[2]=1;
+	RJ45_1_DirIP[3]=85;
+	RJ45_1_Dir_Port=3590 + 20 * 7;
 //	uart_init(9600);
 	
 //	RJ45_1_Init();
 //	RJ45_1_TCP_ServiceInit();
-
+  
 	RJ45_2_Init();
 	RJ45_2_TCP_ServiceInit();
   delay_ms(10);
+//	RJ45_1_Init();
+//	RJ45_1_TCP_ClientInit();
 	TIM4_Init();    //用于设备运行指示，1S进一次中断
 	trr++;
 	while(1)
 	{
-		SelfTest(trr);
-		trr++;
-		delay_ms(1000);
+		OPTest(trr);
 	}
 }
 

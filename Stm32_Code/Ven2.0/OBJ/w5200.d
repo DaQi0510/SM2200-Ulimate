@@ -33,3 +33,4 @@
 ..\obj\w5200.o: ..\HardWare\SM2200\sm2200.h
 ..\obj\w5200.o: ..\FWLIB\inc\stm32f4xx_dma.h
 ..\obj\w5200.o: ..\HardWare\LCD\lcd.h
+..\obj\w5200.o: ..\HardWare\AT24C02\AT24C02.h

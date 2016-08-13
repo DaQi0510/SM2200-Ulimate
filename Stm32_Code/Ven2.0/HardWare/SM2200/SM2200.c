@@ -38,7 +38,7 @@ void SM2200_Init(void)
 	       2  TXREG  允许Regulation信号控制  写1禁止，需程序自己处理
 	       8~11  地址位设定
 	*/
-	OfdmXcvrWrite(TRANCEIVER_CONFIG, 2,0x0205);
+	OfdmXcvrWrite(TRANCEIVER_CONFIG, 2,0x0105);
 //	/***************NODE_ADDR0说明********************/
 //	//地址0x60  
 ////	/*     设别地址位设置        */
@@ -46,7 +46,7 @@ void SM2200_Init(void)
 ////	/***************NODE_ADDR0说明********************/
 ////	//地址0x68  
 ////	/*     设置成0xFF，地址必须匹配       */
-	OfdmXcvrWrite(NODE_ADDR_MASK0, 2,0xFFFF);
+	OfdmXcvrWrite(NODE_ADDR_MASK0, 2,0x00FF);
 	/***************INTERRUPT_MASK说明********************/
 	//地址0x50    
 	/*     0  PKTRCVD  接收完成实现中断

@@ -17,6 +17,7 @@ namespace WindowsFormsApplication1
         static byte Connect = 0x00;         //命令地址0x00，建立连接
         static byte DisConnect = 0x01;      //命令地址0x01，断开连接
         static byte ChatInit = 0x02;        //命令地址0x02, 通信配置   
+        static byte ChatInitBack = 0x03;    //命令地址0x03, 回传通信设置配置  
         //static byte Message_Send = 0x02;    //载波设备发送信息
         //static byte Message_Rece = 0x03;    //载波设备接收信息
         //static byte CheckChannel = 0x04;    //查找可用通道模式
@@ -359,6 +360,65 @@ namespace WindowsFormsApplication1
         {
             StartVoltage = (byte)int.Parse(textBox1.Text.Trim());
         }
+        /// <summary>
+        /// 读取设备通信配置信息
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button5_Click(object sender, EventArgs e)
+        {
+            TData[0] = 0x3C;  //<
+            TData[1] = ChatInitBack;
+            TData[7] = 0x3E; //>
+            Information.Length = 0;
+            Information.Append(System.DateTime.Now.ToString() + " ");
+            Information.Append("获取通信配置信息！");
+            Information.Append(System.Environment.NewLine);
+            Info.Update = true;
+            SendMessage(8);
+        }
+        /// <summary>
+        /// 根据设备回传信息显示
+        /// </summary>
+        void ChatDeviceDisplays()
+        {
+            if (DeviceScale == 1)
+            {
+                ChatDeviceEnable(true);
+                comboBox2.SelectedIndex = 0;
+            }
+            else
+            {
+                ChatDeviceEnable(false);
+                comboBox2.SelectedIndex = 1;
+                btn1.Text = "*";
+                btn2.Text = "*";
+                btn3.Text = "*";
+                btn4.Text = "*";
+                btn5.Text = "*";
+                btn6.Text = "*";
+                btn7.Text = "*";
+            }
+            for (byte i = 1; i < 8; i++)
+            {
+                foreach (Control ctl in this.groupBox2.Controls)   //遍历通信设置部分所有控件
+                {
+                    if (ctl is Button)
+                    {
+                        if (ctl.Name == ("btn" + i.ToString()))
+                        {
+                            if (ConnectToDevices[i - 1] != 0)
+                                ctl.BackColor = System.Drawing.Color.DarkOrange;
+                            else
+                                ctl.BackColor = System.Drawing.SystemColors.ControlLight;
+
+                        }
+                    }
+                }
+            }
+            textBox1.Text = StartVoltage.ToString();
+
+        }
         #endregion
 
         #region        网口程序部分
@@ -481,103 +541,135 @@ namespace WindowsFormsApplication1
             {
                 switch (RData[1])
                 {
-                    case 0x00 :  //建立连接
+                    case 0x00  :  //建立连接
                         Information.Length = 0;
                         Information.Append(System .DateTime .Now .ToString ()+" ");
                         Information.Append("与设备 " + ConnectDevice.ToString() + " 成功建立网络连接" + System.Environment.NewLine);
                         Info.Update = true;  
                         break;
-                    case 0x01:
+                    case 0x01 : //断开连接
                         Socket_Device.Dispose();
                         Information.Length = 0;
                         Information.Append(System .DateTime .Now .ToString ()+" ");
                         Information.Append("与设备 " + ConnectDevice.ToString() + " 断开网络连接" + System.Environment.NewLine);
                         Info.Update = true;
                         break;
-                    case 0x02:      //设备发送信息
+                    case 0x02:      //配置设备通信信息
+                        Information.Length = 0;
+                        Information.Append(System .DateTime .Now .ToString ()+" ");
+                        Information.Append("通信配置成功！ ");
+                        if (DeviceScale == 1)
+                        {
+                            Information.Append("主模式 通信设备 ");
+                            for (byte i = 0; i < 7; i++)
+                            {
+                                if (RData[i + 3] != 0)
+                                    Information.Append(RData[i + 3].ToString ()+" ");
+                            }
+                           
+                        }
+                        else
+                            Information.Append("从模式");
+                        Information.Append(System.Environment.NewLine);
+                        Info.Update = true;  
+                        break;
+                    case 0x03:      //回传设备配置信息
                         Information.Length = 0;
                         Information.Append(System.DateTime.Now.ToString() + " ");
-                        Information.Append("发送数据到设备 " + (RData[2] * 256 + RData[3]).ToString() + " 幅值：" + RData[40].ToString()+" " + System.Environment.NewLine);
-                        Information.Append("通道：");
-                        Kong = 0;
-                        for (byte i = 0; i < 18; i++)
-                        {
-                            if (RData[2 * i + 4] != 0)
-                            {
-                                ChannelNum = RData[2 * i + 4];
-                                while (Information.Length - Kong <= 3)
-                                    Information.Append(" ");
-                                Kong = Information.Length;
-                                Information.Append(ChannelNum.ToString());
-                                
-                            }
-                        }
-                        Information.Append(System.Environment.NewLine);
-                        Information.Append("频点：");
-                        Kong = 0;
-                        for (byte i = 0; i < 18; i++)
-                        {
-                            if (RData[2 * i + 5] != 0)
-                            {
-                                ChannelNum = RData[2 * i + 5];
-                                while (Information.Length + -Kong <= 3)
-                                    Information.Append(" ");
-                                Kong= Information.Length;
-                                Information.Append(ChannelNum.ToString());    
-                            }
-                        }
+                        Information.Append("获取通信配置信息成功！");
                         Information.Append(System.Environment.NewLine);
                         Info.Update = true;
-                        TData[0] = 0x3C;  //<
-                        //TData[1] = Message_Send;
-                        TData[2] = 0x3E; //>
-                        SendMessage(3);     //回传确认信息
-                        break;
-                    case 0x03:      //设备接收信息
-                        Information.Length = 0;
-                        Information.Append(System.DateTime.Now.ToString() + " ");
-                        Information.Append("接收设备 " + (RData[2] * 256 + RData[3]).ToString() + "数据，"+" 幅值：" + RData[40].ToString() + " " + System.Environment.NewLine);
-                        Information.Append("通道：");
-                        Kong = 0;
-                        for (byte i = 0; i < 18; i++)
+                        DeviceScale = RData[2];
+                        for (byte i = 0; i < 7; i++)
                         {
-                            if (RData[2 * i + 4] != 0)
-                            {
-                                ChannelNum = RData[2 * i + 4];
-                                while (Information.Length - Kong <= 3)
-                                    Information.Append(" ");
-                                Kong = Information.Length;
-                                Information.Append(ChannelNum.ToString()+" ");
-                            }
+                            ConnectToDevices[i] = RData[3 + i];
                         }
-                        Information.Append(System.Environment.NewLine);
-                        Information.Append("频点：");
-                        Kong = 0;
-                        for (byte i = 0; i < 18; i++)
-                        {
-                            if (RData[2 * i + 5] != 0)
-                            {
-                                ChannelNum = RData[2 * i + 5];
-                                while (Information.Length - Kong <= 3)
-                                    Information.Append(" ");
-                                Kong = Information.Length;
-                                Information.Append(ChannelNum.ToString()+" ");
-                            }
-                        }
-                        Information.Append(System.Environment.NewLine);
-                        Info.Update = true;
-                        TData[0] = 0x3C;  //<
-                      //  TData[1] = Message_Rece ;
-                        TData[2] = 0x3E; //>
-                        SendMessage(3);     //回传确认信息
+                        StartVoltage = RData[10];
+                        ChatDeviceDisplays();
                         break;
-                    case 0x04:             //通信频点信息查找
-                        Information.Length = 0;
-                        Information.Append(System.DateTime.Now.ToString() + " ");
-                        Information.Append("设备配置成功！");
-                        Information.Append(System.Environment.NewLine);
-                        Info.Update = true;
-                        break;
+                //        Information.Length = 0;
+                //        Information.Append(System.DateTime.Now.ToString() + " ");
+                //        Information.Append("发送数据到设备 " + (RData[2] * 256 + RData[3]).ToString() + " 幅值：" + RData[40].ToString() + " " + System.Environment.NewLine);
+                //        Information.Append("通道：");
+                //        Kong = 0;
+                //        for (byte i = 0; i < 18; i++)
+                //        {
+                //            if (RData[2 * i + 4] != 0)
+                //            {
+                //                ChannelNum = RData[2 * i + 4];
+                //                while (Information.Length - Kong <= 3)
+                //                    Information.Append(" ");
+                //                Kong = Information.Length;
+                //                Information.Append(ChannelNum.ToString());
+
+                //            }
+                //        }
+                //        Information.Append(System.Environment.NewLine);
+                //        Information.Append("频点：");
+                //        Kong = 0;
+                //        for (byte i = 0; i < 18; i++)
+                //        {
+                //            if (RData[2 * i + 5] != 0)
+                //            {
+                //                ChannelNum = RData[2 * i + 5];
+                //                while (Information.Length + -Kong <= 3)
+                //                    Information.Append(" ");
+                //                Kong = Information.Length;
+                //                Information.Append(ChannelNum.ToString());
+                //            }
+                //        }
+                //        Information.Append(System.Environment.NewLine);
+                //        Info.Update = true;
+                //        TData[0] = 0x3C;  //<
+                //        //TData[1] = Message_Send;
+                //        TData[2] = 0x3E; //>
+                //        SendMessage(3);     //回传确认信息
+                //        break;
+                //    case 0x03:      //设备接收信息
+                //        Information.Length = 0;
+                //        Information.Append(System.DateTime.Now.ToString() + " ");
+                //        Information.Append("接收设备 " + (RData[2] * 256 + RData[3]).ToString() + "数据，" + " 幅值：" + RData[40].ToString() + " " + System.Environment.NewLine);
+                //        Information.Append("通道：");
+                //        Kong = 0;
+                //        for (byte i = 0; i < 18; i++)
+                //        {
+                //            if (RData[2 * i + 4] != 0)
+                //            {
+                //                ChannelNum = RData[2 * i + 4];
+                //                while (Information.Length - Kong <= 3)
+                //                    Information.Append(" ");
+                //                Kong = Information.Length;
+                //                Information.Append(ChannelNum.ToString() + " ");
+                //            }
+                //        }
+                //        Information.Append(System.Environment.NewLine);
+                //        Information.Append("频点：");
+                //        Kong = 0;
+                //        for (byte i = 0; i < 18; i++)
+                //        {
+                //            if (RData[2 * i + 5] != 0)
+                //            {
+                //                ChannelNum = RData[2 * i + 5];
+                //                while (Information.Length - Kong <= 3)
+                //                    Information.Append(" ");
+                //                Kong = Information.Length;
+                //                Information.Append(ChannelNum.ToString() + " ");
+                //            }
+                //        }
+                //        Information.Append(System.Environment.NewLine);
+                //        Info.Update = true;
+                //        TData[0] = 0x3C;  //<
+                //        //  TData[1] = Message_Rece ;
+                //        TData[2] = 0x3E; //>
+                //        SendMessage(3);     //回传确认信息
+                //        break;
+                //    case 0x04:             //通信频点信息查找
+                //        Information.Length = 0;
+                //        Information.Append(System.DateTime.Now.ToString() + " ");
+                //        Information.Append("设备配置成功！");
+                //        Information.Append(System.Environment.NewLine);
+                //        Info.Update = true;
+                //        break;
                 }
             }
         }
@@ -658,10 +750,7 @@ namespace WindowsFormsApplication1
             label6.Text = Numi.ToString();
         }
 
-        private void button5_Click(object sender, EventArgs e)
-        {
-
-        }
+        
 
        
 

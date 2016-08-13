@@ -21,47 +21,48 @@ void OPTest(u32 CheckNum)
 	static u8 j;
 	u8 i,l;
 	u32 time;
-	if(CheckNum==1)
-	{
-		u8 i=0;
-	  SM2200_GPIO();
-	  delayms(1);
-	  SPI_SM2200 ();
-	  RST_High ;
-	  delayms(10);
-	  RST_Low;	
-	  delayms(10);
-//		RJ45_1_WData[0]='M';
-		OfdmXcvrWrite(TRANCEIVER_CONFIG, 2,0x0005);
-		OfdmXcvrWrite(INTERRUPT_MASK,2,0x0009);
-		OfdmXcvrWrite(TX_OUT_VOLTAGE,2, 0x05);
-		
-		for(i=0;i<NUMBER_OF_CLUSTERS ;i++)
-	  {
-			OfdmXcvrWrite(CLUSTER_SELECT,2,i);    
-			OfdmXcvrWrite(CARRIER_VOLTAGE,2,0x07);	
-			OfdmXcvrWrite(CARRIER_FREQ_SELECT,2,13+5*i);
-			OfdmXcvrWrite(TX_BUFFER_CTRL,2,i);
-	  }
-		OfdmXcvrWrite(AGC_CONTROL,2,0xABA1);
-		OfdmXcvrWrite(CLUSTER_SELECT,2, 0);
-		OfdmXcvrWrite(AGC_LEVELS,2,0x00);
-		OfdmXcvrWrite(CLUSTER_SELECT,2,1);
-		OfdmXcvrWrite(AGC_LEVELS,2,0x0010);
-		OfdmXcvrWrite(CLUSTER_SELECT,2,2);
-		OfdmXcvrWrite(AGC_LEVELS,2,0x0020);
-		OfdmXcvrWrite(CLUSTER_SELECT,2,3);
-		OfdmXcvrWrite(AGC_LEVELS,2,0x0030);
-		OfdmXcvrWrite(CHANNEL_ENABLE,3,0x03ffff);
-		OfdmXcvrWrite(TRANCEIVER_CONTROL, 2,0x0310);
-		delayms(10);
-		TIM3_Init(10000-1,8400-1);
-	}
+//	if(CheckNum==1)
+//	{
+//		u8 i=0;
+//	  SM2200_GPIO();
+//	  delayms(1);
+//	  SPI_SM2200 ();
+//	  RST_High ;
+//	  delayms(10);
+//	  RST_Low;	
+//	  delayms(10);
+////		RJ45_1_WData[0]='M';
+//		OfdmXcvrWrite(TRANCEIVER_CONFIG, 2,0x0005);
+//		OfdmXcvrWrite(INTERRUPT_MASK,2,0x0009);
+//		OfdmXcvrWrite(TX_OUT_VOLTAGE,2, 0x05);
+//		
+//		for(i=0;i<NUMBER_OF_CLUSTERS ;i++)
+//	  {
+//			OfdmXcvrWrite(CLUSTER_SELECT,2,i);    
+//			OfdmXcvrWrite(CARRIER_VOLTAGE,2,0x07);	
+//			OfdmXcvrWrite(CARRIER_FREQ_SELECT,2,13+5*i);
+//			OfdmXcvrWrite(TX_BUFFER_CTRL,2,i);
+//	  }
+//		OfdmXcvrWrite(AGC_CONTROL,2,0xABA1);
+//		OfdmXcvrWrite(CLUSTER_SELECT,2, 0);
+//		OfdmXcvrWrite(AGC_LEVELS,2,0x00);
+//		OfdmXcvrWrite(CLUSTER_SELECT,2,1);
+//		OfdmXcvrWrite(AGC_LEVELS,2,0x0010);
+//		OfdmXcvrWrite(CLUSTER_SELECT,2,2);
+//		OfdmXcvrWrite(AGC_LEVELS,2,0x0020);
+//		OfdmXcvrWrite(CLUSTER_SELECT,2,3);
+//		OfdmXcvrWrite(AGC_LEVELS,2,0x0030);
+//		OfdmXcvrWrite(CHANNEL_ENABLE,3,0x03ffff);
+//		OfdmXcvrWrite(TRANCEIVER_CONTROL, 2,0x0310);
+//		delayms(10);
+//		TIM3_Init(10000-1,8400-1);
+//	}
 	if(Device==6)
 	{
 		for(i=0;i<18;i++)
 	  {
-			for(l=0;l<80;l++)
+			SM2200TxBuf[i][0]=7;
+			for(l=1;l<80;l++)
 			{
 				SM2200TxBuf[i][l]=i+l+j;
 			}
@@ -77,10 +78,10 @@ void OPTest(u32 CheckNum)
 		}
 		SM2200_Send ();
 		ChannelSend=0;
-	  LED3 =!LED3 ;
+//	  LED3 =!LED3 ;
 		delay_ms(500);
 	}
-	if(Device==5)
+	if(Device==7)
 	{
 
 		if(SM2200ReceiveFalg==1)
@@ -94,7 +95,7 @@ void OPTest(u32 CheckNum)
 			}
 			if(ChannelReceive==0x03ffff)
 			{
-				LED3 =!LED3 ;
+			
 			}
 			for(i=0;i<18;i++)
 			{
@@ -112,6 +113,7 @@ void OPTest(u32 CheckNum)
 			j++;
 			ChannelReceive=0;
 			SM2200ReceiveFalg=0;
+			LED2 =!LED2;
 		}
 	}
 }

@@ -2,10 +2,11 @@
 #include "led.h"
 #include "wwdg.h"
 #include "sm2200.h"
+#include "AT24C02.h"
 extern u8  ConnectState;       //设备连接状态
 
-extern volatile u8 ConnectDevice;     //连接设备号
-extern volatile u8 DeviceScale;       //连接从属级别   0从 1主
+extern volatile u8 ConnectDevice[7];     //连接设备号
+extern volatile u8 DeviceScale;          //连接从属级别   0从 1主
 
 extern volatile u8 Command[74];       //主机控制命令
 extern u8 ServiceIP[4];
@@ -21,6 +22,8 @@ extern u16 RJ45_1_RLength;
 extern u8 RJ45_1_Connect;  //连接状态
 extern u8 RJ45_1_ReceiveFlag;
 extern u16 RJ45_1_Send;     //发送状态
+extern u8 RJ45_1_DirIP[4];   //对方服务器IP地址
+extern u16 RJ45_1_Dir_Port;   
 extern u8 RJ45_2_MAC[6];
 extern u8 RJ45_2_IP[4];
 extern u8 RJ45_2_GateWay[4];
@@ -53,6 +56,11 @@ extern u8 Voltage;                   //记录电压幅值
 extern volatile u16 ToDevice;        //要发送到数据的设备号  
 extern volatile u16 ReDevice;        //接收到数据的设备号
 
+/******上位机命令定义*********/
+u8 Connect=0x00;      //建立连接命令 
+u8 DisConnect=0x01;   //断开连接命令 
+u8 ChatInit=0x02;     //通信配置
+u8 ChatInitBack=0x03; //获取通信配置信息
 u8 WriteTem[2];
 u8 ReadTem[2];
 /********************RJ45_1部分*****************************/
@@ -226,9 +234,99 @@ u8 RJ45_1_TCP_ServiceInit(void)
 	return Success;
 }
 /**
+*@brief		TCP模式初始化  客户端   默认连接三次，三次连接不上，返回Fail
+*@param   无
+*@return	无
+*/
+u8 RJ45_1_TCP_ClientInit(void)
+{
+	u8 i,j=0,k=0,state;
+	RJ45_1_Write_Register(SIMR,1<<0); //允许SOCKET0产生中断                  
+	RJ45_1_Write_Register(Sn_IMR(0) ,Sn_IR_RECV|Sn_IR_DISCON|Sn_IR_CON); //设置中断屏蔽寄存器
+	CloseSocket_RJ45_1();
+	RJ45_1_Write_Register(Sn_MR(0),Sn_MR_TCP|Sn_MR_ND);      //tcp模式，无延时
+	WriteTem[0]=RJ45_1_Loc_Potr/256;
+	WriteTem[1]=RJ45_1_Loc_Potr%256;
+	RJ45_1_Write_Buf(Sn_PORT0(0),WriteTem,2);      //设置端口号
+  Init1:	RJ45_1_Write_Register(Sn_CR(0),Sn_CR_OPEN);
+	for(i=0;i<20;i++);
+	while(RJ45_1_Read_Register(Sn_CR(0)))   	/*Wait to process the command*/
+	{
+		for(i=0;i<20;i++);       
+	}
+	if(RJ45_1_Read_Register(Sn_SR(0))!=SOCK_INIT)   //检测网口开启状态
+	{
+		j++;
+		if(j<10)
+		{
+			CloseSocket_RJ45_1();
+			goto Init1;
+		}
+		else
+		{
+			CloseSocket_RJ45_1();
+			return Fail;
+		}
+	}
+	
+	RJ45_1_Write_Register(Sn_DIPR0(0),RJ45_1_DirIP[0]);    //目标服务器IP地址
+	RJ45_1_Write_Register(Sn_DIPR1(0),RJ45_1_DirIP[1]);    //目标服务器IP地址
+	RJ45_1_Write_Register(Sn_DIPR2(0),RJ45_1_DirIP[2]);    //目标服务器IP地址
+	RJ45_1_Write_Register(Sn_DIPR3(0),RJ45_1_DirIP[3]);    //目标服务器IP地址
+	WriteTem[0]=RJ45_1_Dir_Port/256;
+	WriteTem[1]=RJ45_1_Dir_Port%256;
+	RJ45_1_Write_Register(Sn_DPORT0(0),WriteTem[0]);        //设置目标服务器端口号
+	RJ45_1_Write_Register(Sn_DPORT1(0),WriteTem[1]);        //设置目标服务器端口号
+	RJ45_1_Dir_Port=RJ45_1_Read_Register(Sn_DPORT0(0));
+	RJ45_1_Dir_Port<<=8;
+	RJ45_1_Dir_Port+=RJ45_1_Read_Register(Sn_DPORT1(0));
+	RJ45_1_Write_Register(Sn_CR(0),Sn_CR_CONNECT);   //开启连接
+	
+	for(i=0;i<20;i++);
+	while(RJ45_1_Read_Register(Sn_CR(0)))   	/*Wait to process the command*/
+	{
+		for(i=0;i<20;i++);       
+	}
+	state=RJ45_1_Read_Register(Sn_SR(0));
+	while(RJ45_1_Read_Register(Sn_SR(0))!=SOCK_SYNSENT)
+	{
+		if(RJ45_1_Read_Register(Sn_SR(0))==SOCK_ESTABLISHED)
+		{
+			state=1;
+			break;
+		}
+		if(RJ45_1_Read_Register(Sn_IR(0))& Sn_IR_TIMEOUT)
+		{
+			RJ45_1_Write_Register(Sn_IR(0),Sn_IR_TIMEOUT);
+			state=2;
+			break;
+		}
+	}
+//	state=RJ45_1_Read_Register(Sn_SR(0));
+//	state=RJ45_1_Read_Register(Sn_SR(0));
+//	while(state!=SOCK_ESTABLISHED)
+//	{
+//		for(i=0;i<20;i++);
+//		state=RJ45_1_Read_Register(Sn_SR(0));
+//		if(state==SOCK_CLOSED)   //超时连接，跳出循环
+//			break;
+//	}
+//	if(state==SOCK_CLOSED)
+//	{
+//		k++;
+//		if(k<=3)
+//			goto Init1;
+//		else
+//			CloseSocket_RJ45_1();
+//			return Fail;	
+//	}
+	return Success;
+}
+
+/**
 *@brief		读取数据
 *@param   RData：读取数据存放数组
-*@return	无
+*@return	fail 0  success 1
 */
 void RJ45_1_Read(u8 *RData)
 {
@@ -281,7 +379,7 @@ void CloseSocket_RJ45_1(void)
 	{
 		for(i=0;i<20;i++);       
 	}
-	RJ45_1_Write_Register(Sn_IR(0),0xFF);					/*All clear*/
+	RJ45_1_Write_Register(Sn_IR(0),0xFF);		  /*All clear*/
 }
 /**
 *@brief		向W5500写入一个8位数据
@@ -381,8 +479,13 @@ void EXTI15_10_IRQHandler(void)
 		if(StateFlag&Sn_IR_DISCON)
 		{
 			RJ45_1_Write_Register(Sn_IR(0),Sn_IR_DISCON);
+			CloseSocket_RJ45_1();
 		}
-
+//    if(StateFlag&Sn_IR_TIMEOUT)  //连接超时
+//		{
+//			RJ45_1_Write_Register(Sn_IR(0),Sn_IR_TIMEOUT);
+//			CloseSocket_RJ45_1();
+//		}
 		EXTI_ClearITPendingBit(EXTI_Line14);//清除LINE15上的中断标志位 
 	} 
 }
@@ -724,24 +827,56 @@ void EXTI9_5_IRQHandler(void)
 }
 void RJ45_2_Deal(void)     //接收数据处理
 {
-
+  u8 i;
 	if((RJ45_2_RData[0]==0x3C)&&(RJ45_2_RData[RJ45_2_RLength-1]==0x3E))    //判断数据包头包尾
 	{
-		if(RJ45_2_RData[1]==0x00)  //与电脑建立连接
+		if(RJ45_2_RData[1]==Connect)  //与电脑建立连接
 		{
 				RJ45_2_WData[0]=0x3C;
-				RJ45_2_WData[1]=0x00;
+				RJ45_2_WData[1]=Connect;
 			  RJ45_2_WData[7]=0x3E;
 				RJ45_2_Write(RJ45_2_WData,8);
 			  RJ45_2_Connect=1;
 		}
-		if(RJ45_2_RData[1]==0x01)  //与电脑断开连接
+		if(RJ45_2_RData[1]==DisConnect)  //与电脑断开连接
 		{
 				RJ45_2_WData[0]=0x3C;
-				RJ45_2_WData[1]=0x01;
+				RJ45_2_WData[1]=DisConnect;
 			  RJ45_2_WData[7]=0x3E;
 				RJ45_2_Write(RJ45_2_WData,8);
 			  RJ45_2_Connect=0;
+		}
+		if(RJ45_2_RData[1]==ChatInit)  //载波通信配置
+		{
+			/*******读取配置信息***********/
+			DeviceScale =RJ45_2_RData[2];
+			for(i=0;i<7;i++)
+			{
+				ConnectDevice[i]=RJ45_2_RData[3+i];
+			}
+			Voltage=RJ45_2_RData[10];
+			/******保存配置信息**********/
+			AT24C02_WriteOneByte(0x13,DeviceScale);   //设备主从模式
+			AT24C02_WriteOneByte(0x14,Voltage);   //设备主从模式
+			for(i=0;i<7;i++)
+			{
+				AT24C02_WriteOneByte(0x15+i,ConnectDevice[i]);
+			}
+			/*****发送应答信息**********/
+		  RJ45_2_Write(RJ45_2_RData,16);
+		}
+		if(RJ45_2_RData[1]==ChatInitBack)  //获取载波通信配置信息
+		{
+			RJ45_2_WData[0]=0x3C;
+			RJ45_2_WData[1]=ChatInitBack;
+			RJ45_2_WData[2]=DeviceScale;
+			for(i=0;i<7;i++)
+			{
+				RJ45_2_WData[3+i]=ConnectDevice[i];
+			}
+			RJ45_2_WData[10]=Voltage;
+			RJ45_2_WData[15]=0x3E;
+			RJ45_2_Write(RJ45_2_WData,16);
 		}
 //    if(RJ45_2_RData[1]==0x02)  //发送信息确认
 //		{

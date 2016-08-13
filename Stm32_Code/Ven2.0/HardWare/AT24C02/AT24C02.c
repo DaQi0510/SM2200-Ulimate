@@ -7,6 +7,12 @@ extern u8 RJ45_2_IP[4];
 extern u8 RJ45_2_MAC[6];
 extern u16 RJ45_1_Loc_Potr;
 extern u16 RJ45_2_Loc_Potr;
+extern u8 RJ45_1_DirIP[4];   //对方服务器IP地址
+extern u16 RJ45_1_Dir_Port;
+
+extern volatile u8 ConnectDevice[7];     //载波通信连接设备号
+extern volatile u8 DeviceScale;          //连接从属级别   0从 1主
+extern u8 Voltage;                   //记录电压幅值
 /********** IIC引脚初始化*****************/
 /*-------------|----------------
 	        PD12<->SCL
@@ -74,6 +80,16 @@ void GetDeviceInformation(void)
 	RJ45_2_MAC[3]=(Device*100+1)%256;
 	RJ45_2_MAC[4]=(Device*10+1)%256;
 	RJ45_2_MAC[5]=Device*10%256;
+	
+	AT24C02_Read(0x0D,RJ45_1_DirIP,4);   //目标服务器IP地址
+	RJ45_1_Dir_Port=AT24C02_ReadOneByte (0x11);
+	RJ45_1_Dir_Port<<=8;
+	RJ45_1_Dir_Port+=AT24C02_ReadOneByte (0x12);
+	
+	DeviceScale=AT24C02_ReadOneByte (0x13);  //主从模式
+	Voltage=AT24C02_ReadOneByte (0x14);      //信号强度
+	AT24C02_Read(0x15,ConnectDevice,7);
+	
 }
 //在AT24C02指定地址读出一个数据
 //ReadAddr:开始读数的地址  

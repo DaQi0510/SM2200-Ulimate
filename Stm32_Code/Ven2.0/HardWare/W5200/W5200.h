@@ -291,6 +291,7 @@ void RJ45_1_GPIO_Init(void);
 void RJ45_1_Reset(void);
 void RJ45_1_Init(void);
 u8 RJ45_1_TCP_ServiceInit(void);
+u8 RJ45_1_TCP_ClientInit(void);
 void RJ45_1_Read(u8 *RData);
 void RJ45_1_Write(u8 *WData,u16 Len);
 void CloseSocket_RJ45_1(void);
