@@ -13,6 +13,7 @@ extern u16 RJ45_1_Dir_Port;
 extern volatile u8 ConnectDevice[7];     //载波通信连接设备号
 extern volatile u8 DeviceScale;          //连接从属级别   0从 1主
 extern u8 Voltage;                   //记录电压幅值
+extern u8 RunMode;  //设备运行模式
 /********** IIC引脚初始化*****************/
 /*-------------|----------------
 	        PD12<->SCL
@@ -88,7 +89,9 @@ void GetDeviceInformation(void)
 	
 	DeviceScale=AT24C02_ReadOneByte (0x13);  //主从模式
 	Voltage=AT24C02_ReadOneByte (0x14);      //信号强度
-	AT24C02_Read(0x15,ConnectDevice,7);
+	AT24C02_Read(0x15,ConnectDevice,7);      //与之进行载波通信装置号
+	
+	RunMode=AT24C02_ReadOneByte(0x20);  //设备运行模式
 	
 }
 //在AT24C02指定地址读出一个数据

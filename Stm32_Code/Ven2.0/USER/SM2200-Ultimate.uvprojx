@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\FWLIB\inc;..\CORE;..\USER;..\SYSTEM\delay;..\SYSTEM\sys;..\HardWare\LED;..\HardWare\LCD;..\HardWare\SM2200;..\SYSTEM\time;..\HardWare\W5200;..\HardWare\AT24C02;..\Check;..\HardWare\UART;..\HardWare\SendReceive;D:\Keil_v5\ARM\Pack\Keil\STM32F4xx_DFP;..\HardWare\WWDG</IncludePath>
+              <IncludePath>..\FWLIB\inc;..\CORE;..\USER;..\SYSTEM\delay;..\HardWare\LED;..\HardWare\LCD;..\HardWare\SM2200;..\SYSTEM\sys;..\SYSTEM\time;..\HardWare\W5200;..\HardWare\AT24C02;..\Check;..\HardWare\UART;..\HardWare\SendReceive;D:\Keil_v5\ARM\Pack\Keil\STM32F4xx_DFP;..\HardWare\WWDG</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -552,6 +552,11 @@
               <FileName>DeviceToDevice.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Check\DeviceToDevice.c</FilePath>
+            </File>
+            <File>
+              <FileName>Poll.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Check\Poll.c</FilePath>
             </File>
           </Files>
         </Group>

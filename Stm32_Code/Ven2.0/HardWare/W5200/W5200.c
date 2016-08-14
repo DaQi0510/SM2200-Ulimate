@@ -48,13 +48,13 @@ extern u8 Len;
 extern volatile u8 Netflag;   //用于指示当前网络所处状态
 extern volatile u8 BER_Flag;
 
-extern volatile u32 ChannelSend;     //标记发送的通道
-extern volatile u32 ChannelReceive;  //标记接收的通道
-extern volatile u8 ChannelFrenquence[18];//18个通道频点数组
+extern volatile u32 ChannelSend;            //标记发送的通道
+extern volatile u32 ChannelReceive;         //标记接收的通道
+extern volatile u8 ChannelFrenquence[18];   //18个通道频点数组
 extern volatile u8 SM2200RxBuf[18][128];    //18个通道接收数据包数组
 extern u8 Voltage;                   //记录电压幅值
 extern volatile u16 ToDevice;        //要发送到数据的设备号  
-extern volatile u16 ReDevice;        //接收到数据的设备号
+extern volatile u8 ReDevice;        //接收到数据的设备号
 
 /******上位机命令定义*********/
 u8 Connect=0x00;      //建立连接命令 
@@ -248,6 +248,7 @@ u8 RJ45_1_TCP_ClientInit(void)
 	WriteTem[0]=RJ45_1_Loc_Potr/256;
 	WriteTem[1]=RJ45_1_Loc_Potr%256;
 	RJ45_1_Write_Buf(Sn_PORT0(0),WriteTem,2);      //设置端口号
+	
   Init1:	RJ45_1_Write_Register(Sn_CR(0),Sn_CR_OPEN);
 	for(i=0;i<20;i++);
 	while(RJ45_1_Read_Register(Sn_CR(0)))   	/*Wait to process the command*/
@@ -268,18 +269,15 @@ u8 RJ45_1_TCP_ClientInit(void)
 			return Fail;
 		}
 	}
+	RJ45_1_Write_Buf(Sn_DIPR0(0),RJ45_1_DirIP,4);          //目标服务器IP地址
+//	RJ45_1_Write_Register(Sn_DIPR0(0),RJ45_1_DirIP[0]);    //目标服务器IP地址
+//	RJ45_1_Write_Register(Sn_DIPR1(0),RJ45_1_DirIP[1]);    //目标服务器IP地址
+//	RJ45_1_Write_Register(Sn_DIPR2(0),RJ45_1_DirIP[2]);    //目标服务器IP地址
+//	RJ45_1_Write_Register(Sn_DIPR3(0),RJ45_1_DirIP[3]);    //目标服务器IP地址
+//	RJ45_1_Write_Buf(Sn_DIPR0(0),RJ45_1_DirIP,4);          //目标服务器IP地址
+	ReadTem[0]=RJ45_1_Read_Register(Sn_DIPR0(0));
+	ReadTem[1]=RJ45_1_Read_Register(Sn_DIPR0(0));
 	
-	RJ45_1_Write_Register(Sn_DIPR0(0),RJ45_1_DirIP[0]);    //目标服务器IP地址
-	RJ45_1_Write_Register(Sn_DIPR1(0),RJ45_1_DirIP[1]);    //目标服务器IP地址
-	RJ45_1_Write_Register(Sn_DIPR2(0),RJ45_1_DirIP[2]);    //目标服务器IP地址
-	RJ45_1_Write_Register(Sn_DIPR3(0),RJ45_1_DirIP[3]);    //目标服务器IP地址
-	WriteTem[0]=RJ45_1_Dir_Port/256;
-	WriteTem[1]=RJ45_1_Dir_Port%256;
-	RJ45_1_Write_Register(Sn_DPORT0(0),WriteTem[0]);        //设置目标服务器端口号
-	RJ45_1_Write_Register(Sn_DPORT1(0),WriteTem[1]);        //设置目标服务器端口号
-	RJ45_1_Dir_Port=RJ45_1_Read_Register(Sn_DPORT0(0));
-	RJ45_1_Dir_Port<<=8;
-	RJ45_1_Dir_Port+=RJ45_1_Read_Register(Sn_DPORT1(0));
 	RJ45_1_Write_Register(Sn_CR(0),Sn_CR_CONNECT);   //开启连接
 	
 	for(i=0;i<20;i++);

@@ -13,6 +13,7 @@
 #include "uart.h"	
 #include "SendReceive.h"
 #include "wwdg.h"
+#include "Poll.h"
 
 /**********   SM2200最终版本    **************/
 /**********建立时间：2015年7月26日************/
@@ -44,11 +45,12 @@
 /*******************设备部分****************************/
 volatile u8 Command[74];             //主机控制命令 
 
-volatile u8 Device;                  //设备号
-volatile u8 ConnectDevice[7];        //连接设备号
+volatile u8 Device;                   //设备号
+volatile u8  ConnectDevice[7];        //连接设备号
+u32 ReceNum[7][19];                   //记录向各个设备的发送、接收次数
 volatile u8 DeviceScale;             //连接从属级别   0从 1主
 volatile u16 ToDevice;               //要发送数据到的设备号
-volatile u16 ReDevice;               //接收到数据的设备号
+volatile u8 ReDevice;                //接收到数据的设备号
 u8 DeviceInformation[13]={5,3660/256,3660%256,192,168,1,66,3670/256,3670%256,192,168,1,67};     //设备、IP号等信息
 
 /*******************SM2200部分****************************/
@@ -82,7 +84,7 @@ u16 RJ45_1_Loc_Potr=1266;
 u8 RJ45_1_RData[1024];
 u8 RJ45_1_WData[1024];
 u16 RJ45_1_RLength;  //记录接收到数据长度
-u8 RJ45_1_Connect;  //连接状态
+u8 RJ45_1_Connect;   //连接状态
 u8 RJ45_1_ReceiveFlag;  //标记网口1是否接收到数据
 u8 RJ45_1_Send;     //发送状态
 u8 RJ45_1_DirIP[4]={192,168,1,66};   //对方服务器IP地址
@@ -102,6 +104,8 @@ u16 RTR_Time=5000; //重新发送时间  Time=RTR_Time*100us
 u8 RCR_Num=3;     //重新发送次数 
 u16 NetRNum;
 u16 NetTNum;
+
+u8 RunMode;  //设备运行模式   轮询模式：1
 
 volatile u8 CommandFlag;
 
@@ -138,6 +142,7 @@ u8 Len;
 								0x13->主从模式  主模式1 从模式0：
 								0x14->发送电压幅值
 								0x15->0x1B载波通信设备连接号
+								0x20->RunMode设备运行模式
 */
 
 u32 receivenum[1000];
@@ -161,6 +166,11 @@ int main(void)
 	{
 		ChannelFrenquence[i]=20+4*i;
 	}
+	for(i=0;i<7;i++)  //计数单位清零
+	{
+		for(j=0;j<19;j++)
+			ReceNum[i][j]=0;
+	}  
 	SM2200_Init();
 	delay_ms(10);
 	TIM3_Init(10000,8399);
@@ -181,9 +191,16 @@ int main(void)
 //	RJ45_1_TCP_ClientInit();
 	TIM4_Init();    //用于设备运行指示，1S进一次中断
 	trr++;
+	RunMode =1;
 	while(1)
 	{
-		OPTest(trr);
+		switch(RunMode)
+		{
+			case 0x01:    //轮询方式
+				Poll(3);
+				break;
+		}			
+			
 	}
 }
 

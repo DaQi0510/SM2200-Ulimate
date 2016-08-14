@@ -29,6 +29,7 @@
 "..\obj\simulation.o"
 "..\obj\sendreceive.o"
 "..\obj\devicetodevice.o"
+"..\obj\poll.o"
 --strict --scatter "..\OBJ\SM2200-Ultimate.sct"
 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

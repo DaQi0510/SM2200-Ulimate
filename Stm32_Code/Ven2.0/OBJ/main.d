@@ -40,3 +40,4 @@
 ..\obj\main.o: ..\HardWare\SendReceive\SendReceive.h
 ..\obj\main.o: ..\HardWare\WWDG\wwdg.h
 ..\obj\main.o: ..\FWLIB\inc\stm32f4xx_wwdg.h
+..\obj\main.o: ..\Check\Poll.h

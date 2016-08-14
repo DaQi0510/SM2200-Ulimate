@@ -88,7 +88,6 @@ void TIM4_IRQHandler(void)
 		}
 		if((Flag==SOCK_INIT)||(Flag==SOCK_LISTEN))  //初始化阶段或者监听阶段
 		{
-			LED4 =!LED4; //网口指示灯闪烁
 			RJ45_2_Connect=0;
 		}
 		if(Flag==SOCK_ESTABLISHED) //网络建立连接
