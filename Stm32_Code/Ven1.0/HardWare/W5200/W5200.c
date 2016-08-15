@@ -201,6 +201,7 @@ void RJ45_1_Init(void)
 u8 RJ45_1_TCP_ClientInit(void)
 {
 	u8 i;
+	u8 state;
 	RJ45_1_Write_Register(W5200_IMR,1<<0);                     //允许SOCKET0产生中断
 	RJ45_1_Write_Register(Sn_IMR ,(u8)(RECEV|DISCON_Flag|CON)); //设置中断屏蔽寄存器
 	Init1:	RJ45_1_Write_Register(Sn_MR ,TCP_MODE);                    //Set TCP mode
@@ -232,6 +233,7 @@ u8 RJ45_1_TCP_ClientInit(void)
 	ConnectState =0;
 	while(RJ45_1_Read_Register(Sn_SR)!= SOCK_SYNSENT)
 	{
+		state=RJ45_1_Read_Register(Sn_SR);
 		if(RJ45_1_Read_Register(Sn_IR)& TIMEOUT)
 		{
 			RJ45_1_Write_Register(Sn_IR ,TIMEOUT);

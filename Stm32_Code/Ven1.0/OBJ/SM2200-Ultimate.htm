@@ -3,7 +3,7 @@
 <title>Static Call Graph - [..\OBJ\SM2200-Ultimate.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image ..\OBJ\SM2200-Ultimate.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Tue Jul 19 20:56:15 2016
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060183: Last Updated: Sun Aug 14 17:49:01 2016
 <BR><P>
 <H3>Maximum Stack Usage =        108 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -718,11 +718,11 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EXTI_GetITStatus
 <LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EXTI_ClearITPendingBit
 <LI><a href="#[8d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_ms
-<LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_TCP_Init
-<LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_Init
 <LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_Write_Register
+<LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_TCP_Init
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_Read_Register
 <LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_Read
+<LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_Init
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_stm32f40_41xxx.o(RESET)
 </UL>
@@ -933,7 +933,7 @@ Global Symbols
 <LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 <LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_ReadWriteByte
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_TCP_ServiceInit
+<BR>[Called By]<UL><LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_TCP_ClientInit
 <LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_Read
 <LI><a href="#[34]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EXTI15_10_IRQHandler
 </UL>
@@ -947,8 +947,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_Init
 </UL>
 
-<P><STRONG><a name="[a5]"></a>RJ45_1_TCP_ServiceInit</STRONG> (Thumb, 172 bytes, Stack size 8 bytes, w5200.o(i.RJ45_1_TCP_ServiceInit))
-<BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = RJ45_1_TCP_ServiceInit &rArr; RJ45_1_Write_Register &rArr; RJ45_1_ReadWriteByte
+<P><STRONG><a name="[a5]"></a>RJ45_1_TCP_ClientInit</STRONG> (Thumb, 286 bytes, Stack size 16 bytes, w5200.o(i.RJ45_1_TCP_ClientInit))
+<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = RJ45_1_TCP_ClientInit &rArr; RJ45_1_Write_Register &rArr; RJ45_1_ReadWriteByte
 </UL>
 <BR>[Calls]<UL><LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_Write_Register
 <LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_Read_Register
@@ -963,7 +963,7 @@ Global Symbols
 <LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GPIO_ResetBits
 <LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_ReadWriteByte
 </UL>
-<BR>[Called By]<UL><LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_TCP_ServiceInit
+<BR>[Called By]<UL><LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_TCP_ClientInit
 <LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_Init
 <LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_Read
 <LI><a href="#[34]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EXTI15_10_IRQHandler
@@ -995,8 +995,7 @@ Global Symbols
 <LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_Reset
 <LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_GPIO_Init
 </UL>
-<BR>[Called By]<UL><LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-<LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EXTI9_5_IRQHandler
+<BR>[Called By]<UL><LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EXTI9_5_IRQHandler
 </UL>
 
 <P><STRONG><a name="[8f]"></a>RJ45_2_Read</STRONG> (Thumb, 356 bytes, Stack size 32 bytes, w5200.o(i.RJ45_2_Read))
@@ -1050,8 +1049,7 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_Write_Register
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_Read_Register
 </UL>
-<BR>[Called By]<UL><LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-<LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EXTI9_5_IRQHandler
+<BR>[Called By]<UL><LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EXTI9_5_IRQHandler
 </UL>
 
 <P><STRONG><a name="[8b]"></a>RJ45_2_Write_Register</STRONG> (Thumb, 54 bytes, Stack size 16 bytes, w5200.o(i.RJ45_2_Write_Register))
@@ -1062,8 +1060,8 @@ Global Symbols
 <LI><a href="#[a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_ReadWriteByte
 </UL>
 <BR>[Called By]<UL><LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_TCP_Init
-<LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_Init
 <LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_Read
+<LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_Init
 <LI><a href="#[23]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;EXTI9_5_IRQHandler
 </UL>
 
@@ -1334,7 +1332,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[6c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[6c]"></a>main</STRONG> (Thumb, 194 bytes, Stack size 0 bytes, main.o(i.main))
+<P><STRONG><a name="[6c]"></a>main</STRONG> (Thumb, 200 bytes, Stack size 0 bytes, main.o(i.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 108<LI>Call Chain = main &rArr; uart_init &rArr; USART_Init &rArr; RCC_GetClocksFreq
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;uart_init
@@ -1343,9 +1341,7 @@ Global Symbols
 <LI><a href="#[be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;delay_init
 <LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIM3_Init
 <LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SM2200_Init
-<LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_TCP_Init
-<LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_2_Init
-<LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_TCP_ServiceInit
+<LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_TCP_ClientInit
 <LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RJ45_1_Init
 <LI><a href="#[90]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;GetDeviceInformation
 <LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;AT24C02_Init

@@ -73,8 +73,8 @@ u8 Check[50]={'d','a','q','i',0,5,1,0,6,6,
 /************** W5200相关数据定义部分 ******************/
 u8  ConnectState;     //设备连接状态
 u8 RJ45_1_Mode;		    //记录网口模式，0-服务器 1-客户端					 
-u8  ServiceIP[4]={192,168,1,1};
-u16 ServicePort=2404;
+u8  ServiceIP[4]={192,168,1,71};
+u16 ServicePort=3710;
 u8 RJ45_1_MAC[6]={0x00, 0x08, 0xDC, 0x01, 0x02, 0x03};
 u8 RJ45_1_IP[4]={192,168,1,66};
 u8 RJ45_1_GateWay[4]={192, 168,1, 4};
@@ -168,14 +168,17 @@ int main(void)
 	RJ45_1_Connect=0;
 	RJ45_2_Connect=0;
 	RJ45_1_ReceiveFlag=0;
-
-	RJ45_1_Init();
-	delay_ms(100);
-	RJ45_1_TCP_ServiceInit();
+	i=1;
+  while(i==1)
+	{
+		RJ45_1_Init();
+		delay_ms(100);
+		i=RJ45_1_TCP_ClientInit();
+	}
 	
-	RJ45_2_Init();
-	delay_ms(100);
-	RJ45_2_TCP_Init();
+//	RJ45_2_Init();
+//	delay_ms(100);
+//	RJ45_2_TCP_Init();
 	trr++;
 	while(1)
 	{

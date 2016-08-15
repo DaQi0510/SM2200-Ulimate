@@ -205,6 +205,7 @@ u8 RJ45_1_TCP_ServiceInit(void)
 	WriteTem[0]=RJ45_1_Loc_Potr/256;
 	WriteTem[1]=RJ45_1_Loc_Potr%256;
 	RJ45_1_Write_Buf(Sn_PORT0(0),WriteTem,2);      //设置端口号
+	RJ45_1_Write_Register(Sn_KPALVTR(0),1);        //每5s自动检测一次连接状态
   Init1:	RJ45_1_Write_Register(Sn_CR(0),Sn_CR_OPEN);
 	for(i=0;i<20;i++);
 	while(RJ45_1_Read_Register(Sn_CR(0)))   	/*Wait to process the command*/
@@ -248,7 +249,11 @@ u8 RJ45_1_TCP_ClientInit(void)
 	WriteTem[0]=RJ45_1_Loc_Potr/256;
 	WriteTem[1]=RJ45_1_Loc_Potr%256;
 	RJ45_1_Write_Buf(Sn_PORT0(0),WriteTem,2);      //设置端口号
-	
+  WriteTem[0]=RJ45_1_Dir_Port/256;
+	WriteTem[1]=RJ45_1_Dir_Port%256;
+	RJ45_1_Write_Buf(Sn_DPORT0(0),WriteTem,2);     //设置目标服务器端口号
+	RJ45_1_Write_Buf(Sn_DIPR0(0),RJ45_1_DirIP,4);  //目标服务器IP地址
+	RJ45_1_Write_Register(Sn_KPALVTR(0),1);        //每5s自动检测一次连接状态
   Init1:	RJ45_1_Write_Register(Sn_CR(0),Sn_CR_OPEN);
 	for(i=0;i<20;i++);
 	while(RJ45_1_Read_Register(Sn_CR(0)))   	/*Wait to process the command*/
@@ -269,56 +274,25 @@ u8 RJ45_1_TCP_ClientInit(void)
 			return Fail;
 		}
 	}
-	RJ45_1_Write_Buf(Sn_DIPR0(0),RJ45_1_DirIP,4);          //目标服务器IP地址
-//	RJ45_1_Write_Register(Sn_DIPR0(0),RJ45_1_DirIP[0]);    //目标服务器IP地址
-//	RJ45_1_Write_Register(Sn_DIPR1(0),RJ45_1_DirIP[1]);    //目标服务器IP地址
-//	RJ45_1_Write_Register(Sn_DIPR2(0),RJ45_1_DirIP[2]);    //目标服务器IP地址
-//	RJ45_1_Write_Register(Sn_DIPR3(0),RJ45_1_DirIP[3]);    //目标服务器IP地址
-//	RJ45_1_Write_Buf(Sn_DIPR0(0),RJ45_1_DirIP,4);          //目标服务器IP地址
-	ReadTem[0]=RJ45_1_Read_Register(Sn_DIPR0(0));
-	ReadTem[1]=RJ45_1_Read_Register(Sn_DIPR0(0));
 	
 	RJ45_1_Write_Register(Sn_CR(0),Sn_CR_CONNECT);   //开启连接
-	
-	for(i=0;i<20;i++);
+	RJ45_1_Read_Buf(Sn_DIPR0(0),RJ45_1_DirIP,4);
 	while(RJ45_1_Read_Register(Sn_CR(0)))   	/*Wait to process the command*/
-	{
-		for(i=0;i<20;i++);       
+	{ 
 	}
-	state=RJ45_1_Read_Register(Sn_SR(0));
 	while(RJ45_1_Read_Register(Sn_SR(0))!=SOCK_SYNSENT)
 	{
 		if(RJ45_1_Read_Register(Sn_SR(0))==SOCK_ESTABLISHED)
 		{
-			state=1;
-			break;
+			return Success;
 		}
 		if(RJ45_1_Read_Register(Sn_IR(0))& Sn_IR_TIMEOUT)
 		{
 			RJ45_1_Write_Register(Sn_IR(0),Sn_IR_TIMEOUT);
 			state=2;
-			break;
+			return Fail;
 		}
 	}
-//	state=RJ45_1_Read_Register(Sn_SR(0));
-//	state=RJ45_1_Read_Register(Sn_SR(0));
-//	while(state!=SOCK_ESTABLISHED)
-//	{
-//		for(i=0;i<20;i++);
-//		state=RJ45_1_Read_Register(Sn_SR(0));
-//		if(state==SOCK_CLOSED)   //超时连接，跳出循环
-//			break;
-//	}
-//	if(state==SOCK_CLOSED)
-//	{
-//		k++;
-//		if(k<=3)
-//			goto Init1;
-//		else
-//			CloseSocket_RJ45_1();
-//			return Fail;	
-//	}
-	return Success;
 }
 
 /**
@@ -630,6 +604,7 @@ u8 RJ45_2_TCP_ServiceInit(void)
 	WriteTem[0]=RJ45_2_Loc_Potr/256;
 	WriteTem[1]=RJ45_2_Loc_Potr%256;
 	RJ45_2_Write_Buf(Sn_PORT0(0),WriteTem,2);      //设置端口号
+	RJ45_2_Write_Register(Sn_KPALVTR(0),1);        //每5s自动检测一次连接状态
   Init1:	RJ45_2_Write_Register(Sn_CR(0),Sn_CR_OPEN);
 	for(i=0;i<20;i++);
 	while(RJ45_2_Read_Register(Sn_CR(0)))   	/*Wait to process the command*/
@@ -819,6 +794,10 @@ void EXTI9_5_IRQHandler(void)
 		if(StateFlag&Sn_IR_DISCON)
 		{
 			RJ45_2_Write_Register(Sn_IR(0),Sn_IR_DISCON);
+		}
+		if(StateFlag&Sn_IR_TIMEOUT)
+		{
+			RJ45_2_Write_Register(Sn_IR(0),Sn_IR_TIMEOUT);
 		}
 		EXTI_ClearITPendingBit(EXTI_Line5);
 	}

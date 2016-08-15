@@ -177,8 +177,8 @@ int main(void)
 	RJ45_1_DirIP[0]=192;
 	RJ45_1_DirIP[1]=168;
 	RJ45_1_DirIP[2]=1;
-	RJ45_1_DirIP[3]=85;
-	RJ45_1_Dir_Port=3590 + 20 * 7;
+	RJ45_1_DirIP[3]=71;
+	RJ45_1_Dir_Port=3710;
 //	uart_init(9600);
 	
 //	RJ45_1_Init();
@@ -187,8 +187,14 @@ int main(void)
 	RJ45_2_Init();
 	RJ45_2_TCP_ServiceInit();
   delay_ms(10);
-//	RJ45_1_Init();
+	RJ45_1_Init();
 //	RJ45_1_TCP_ClientInit();
+//	while(RJ45_1_TCP_ClientInit()==0)
+//	{
+//		
+//		RJ45_1_Loc_Potr++;
+//		delay_ms(1000);
+//	}
 	TIM4_Init();    //用于设备运行指示，1S进一次中断
 	trr++;
 	RunMode =1;
