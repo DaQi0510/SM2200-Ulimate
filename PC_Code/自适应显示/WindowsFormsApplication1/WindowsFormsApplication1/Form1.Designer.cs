@@ -44,7 +44,6 @@
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.button4 = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.btn4 = new System.Windows.Forms.Button();
             this.btn7 = new System.Windows.Forms.Button();
@@ -60,10 +59,9 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.comboBox3 = new System.Windows.Forms.ComboBox();
+            this.RadButton1 = new System.Windows.Forms.RadioButton();
             this.label6 = new System.Windows.Forms.Label();
+            this.button4 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -235,16 +233,6 @@
             this.label1.TabIndex = 6;
             this.label1.Text = "通信设备号：";
             // 
-            // button4
-            // 
-            this.button4.Location = new System.Drawing.Point(66, 35);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(62, 23);
-            this.button4.TabIndex = 7;
-            this.button4.Text = "收发数据";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
-            // 
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.btn4);
@@ -395,42 +383,26 @@
             // 
             // groupBox3
             // 
-            this.groupBox3.Controls.Add(this.textBox2);
-            this.groupBox3.Controls.Add(this.label5);
-            this.groupBox3.Controls.Add(this.comboBox3);
             this.groupBox3.Controls.Add(this.button4);
+            this.groupBox3.Controls.Add(this.RadButton1);
             this.groupBox3.Location = new System.Drawing.Point(393, 16);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(159, 151);
+            this.groupBox3.Size = new System.Drawing.Size(109, 151);
             this.groupBox3.TabIndex = 10;
             this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "收发模式";
+            this.groupBox3.Text = "运行方式";
             // 
-            // textBox2
+            // RadButton1
             // 
-            this.textBox2.Location = new System.Drawing.Point(75, 63);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(44, 21);
-            this.textBox2.TabIndex = 11;
-            this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(4, 66);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(65, 12);
-            this.label5.TabIndex = 11;
-            this.label5.Text = "发送幅值：";
-            // 
-            // comboBox3
-            // 
-            this.comboBox3.FormattingEnabled = true;
-            this.comboBox3.Location = new System.Drawing.Point(6, 35);
-            this.comboBox3.Name = "comboBox3";
-            this.comboBox3.Size = new System.Drawing.Size(44, 20);
-            this.comboBox3.TabIndex = 11;
-            this.comboBox3.SelectedIndexChanged += new System.EventHandler(this.comboBox3_SelectedIndexChanged);
+            this.RadButton1.AutoSize = true;
+            this.RadButton1.Location = new System.Drawing.Point(19, 20);
+            this.RadButton1.Name = "RadButton1";
+            this.RadButton1.Size = new System.Drawing.Size(71, 16);
+            this.RadButton1.TabIndex = 9;
+            this.RadButton1.TabStop = true;
+            this.RadButton1.Text = "轮询方式";
+            this.RadButton1.UseVisualStyleBackColor = true;
+            this.RadButton1.CheckedChanged += new System.EventHandler(this.RadButton1_CheckedChanged);
             // 
             // label6
             // 
@@ -440,6 +412,16 @@
             this.label6.Size = new System.Drawing.Size(41, 12);
             this.label6.TabIndex = 11;
             this.label6.Text = "label6";
+            // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(25, 118);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(50, 27);
+            this.button4.TabIndex = 19;
+            this.button4.Text = "配置";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click_1);
             // 
             // Form1
             // 
@@ -479,16 +461,12 @@
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button button4;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.ComboBox comboBox3;
-        private System.Windows.Forms.TextBox textBox2;
-        private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.RadioButton radioButton8;
         private System.Windows.Forms.RadioButton radioButton7;
@@ -503,6 +481,8 @@
         private System.Windows.Forms.Button btn5;
         private System.Windows.Forms.Button btn3;
         private System.Windows.Forms.Button btn2;
+        private System.Windows.Forms.RadioButton RadButton1;
+        private System.Windows.Forms.Button button4;
     }
 }
 

@@ -59,8 +59,8 @@ extern volatile u8 ReDevice;        //接收到数据的设备号
 /******上位机命令定义*********/
 u8 Connect=0x00;      //建立连接命令 
 u8 DisConnect=0x01;   //断开连接命令 
-u8 ChatInit=0x02;     //通信配置
-u8 ChatInitBack=0x03; //获取通信配置信息
+u8 PollChat=0x02;     //轮询通信配置主地址
+u8 RunModes=0x03; //获取通信配置信息
 u8 WriteTem[2];
 u8 ReadTem[2];
 /********************RJ45_1部分*****************************/
@@ -241,7 +241,7 @@ u8 RJ45_1_TCP_ServiceInit(void)
 */
 u8 RJ45_1_TCP_ClientInit(void)
 {
-	u8 i,j=0,k=0,state;
+	u8 i,j=0;
 	RJ45_1_Write_Register(SIMR,1<<0); //允许SOCKET0产生中断                  
 	RJ45_1_Write_Register(Sn_IMR(0) ,Sn_IR_RECV|Sn_IR_DISCON|Sn_IR_CON); //设置中断屏蔽寄存器
 	CloseSocket_RJ45_1();
@@ -289,7 +289,6 @@ u8 RJ45_1_TCP_ClientInit(void)
 		if(RJ45_1_Read_Register(Sn_IR(0))& Sn_IR_TIMEOUT)
 		{
 			RJ45_1_Write_Register(Sn_IR(0),Sn_IR_TIMEOUT);
-			state=2;
 			return Fail;
 		}
 	}
@@ -823,37 +822,42 @@ void RJ45_2_Deal(void)     //接收数据处理
 				RJ45_2_Write(RJ45_2_WData,8);
 			  RJ45_2_Connect=0;
 		}
-		if(RJ45_2_RData[1]==ChatInit)  //载波通信配置
+		if(RJ45_2_RData[1]==PollChat)  //轮询通信部分
 		{
-			/*******读取配置信息***********/
-			DeviceScale =RJ45_2_RData[2];
-			for(i=0;i<7;i++)
+			if(RJ45_2_RData[2]==0x00)   //通信配置部分
 			{
-				ConnectDevice[i]=RJ45_2_RData[3+i];
+				/*******读取配置信息***********/
+				DeviceScale =RJ45_2_RData[3];
+				for(i=0;i<7;i++)
+				{
+					ConnectDevice[i]=RJ45_2_RData[4+i];
+				}
+				Voltage=RJ45_2_RData[11];
+				OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);//以为着最多可开2~3个通道
+				/******保存配置信息**********/
+				AT24C02_WriteOneByte(0x13,DeviceScale);   //设备主从模式
+				AT24C02_WriteOneByte(0x14,Voltage);   //设备主从模式
+				for(i=0;i<7;i++)
+				{
+					AT24C02_WriteOneByte(0x15+i,ConnectDevice[i]);
+				}
+				/*****发送应答信息**********/
+				RJ45_2_Write(RJ45_2_RData,16);
 			}
-			Voltage=RJ45_2_RData[10];
-			/******保存配置信息**********/
-			AT24C02_WriteOneByte(0x13,DeviceScale);   //设备主从模式
-			AT24C02_WriteOneByte(0x14,Voltage);   //设备主从模式
-			for(i=0;i<7;i++)
+			if(RJ45_2_RData[2]==0x01)   //通信配置读取部分
 			{
-				AT24C02_WriteOneByte(0x15+i,ConnectDevice[i]);
+				RJ45_2_WData[0]=0x3C;
+				RJ45_2_WData[1]=PollChat;
+				RJ45_2_WData[2]=0x01;
+				RJ45_2_WData[3]=DeviceScale;
+				for(i=0;i<7;i++)
+				{
+					RJ45_2_WData[4+i]=ConnectDevice[i];
+				}
+				RJ45_2_WData[11]=Voltage;
+				RJ45_2_WData[15]=0x3E;
+				RJ45_2_Write(RJ45_2_WData,16);
 			}
-			/*****发送应答信息**********/
-		  RJ45_2_Write(RJ45_2_RData,16);
-		}
-		if(RJ45_2_RData[1]==ChatInitBack)  //获取载波通信配置信息
-		{
-			RJ45_2_WData[0]=0x3C;
-			RJ45_2_WData[1]=ChatInitBack;
-			RJ45_2_WData[2]=DeviceScale;
-			for(i=0;i<7;i++)
-			{
-				RJ45_2_WData[3+i]=ConnectDevice[i];
-			}
-			RJ45_2_WData[10]=Voltage;
-			RJ45_2_WData[15]=0x3E;
-			RJ45_2_Write(RJ45_2_WData,16);
 		}
 //    if(RJ45_2_RData[1]==0x02)  //发送信息确认
 //		{
