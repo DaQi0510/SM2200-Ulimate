@@ -197,7 +197,6 @@ int main(void)
 //	}
 	TIM4_Init();    //用于设备运行指示，1S进一次中断
 	trr++;
-	RunMode =1;
 	while(1)
 	{
 		switch(RunMode)

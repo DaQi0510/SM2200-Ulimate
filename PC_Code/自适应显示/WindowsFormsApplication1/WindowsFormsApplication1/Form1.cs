@@ -93,6 +93,7 @@ namespace WindowsFormsApplication1
                 EndPoint_Device = new IPEndPoint(IP_Device, Port1);
                 ConnectDevice = 1;
                 ChatDeviceDisplay();
+                StatisticsDisplay();
             }
         }
 
@@ -104,6 +105,7 @@ namespace WindowsFormsApplication1
                 EndPoint_Device = new IPEndPoint(IP_Device, Port2);
                 ConnectDevice = 2;
                 ChatDeviceDisplay();
+                StatisticsDisplay(); 
             }
         }
 
@@ -115,6 +117,7 @@ namespace WindowsFormsApplication1
                 EndPoint_Device = new IPEndPoint(IP_Device, Port3);
                 ConnectDevice = 3;
                 ChatDeviceDisplay();
+                StatisticsDisplay();
             }
         }
 
@@ -126,6 +129,7 @@ namespace WindowsFormsApplication1
                 EndPoint_Device = new IPEndPoint(IP_Device, Port4);
                 ConnectDevice = 4;
                 ChatDeviceDisplay();
+                StatisticsDisplay();
             }
         }
         private void radioButton5_CheckedChanged(object sender, EventArgs e)
@@ -136,6 +140,7 @@ namespace WindowsFormsApplication1
                 EndPoint_Device = new IPEndPoint(IP_Device, Port5);
                 ConnectDevice = 5;
                 ChatDeviceDisplay();
+                StatisticsDisplay();
             }
         }
         private void radioButton6_CheckedChanged(object sender, EventArgs e)
@@ -146,6 +151,7 @@ namespace WindowsFormsApplication1
                 EndPoint_Device = new IPEndPoint(IP_Device, Port6);
                 ConnectDevice = 6;
                 ChatDeviceDisplay();
+                StatisticsDisplay();
             }
         }
         private void radioButton7_CheckedChanged(object sender, EventArgs e)
@@ -156,6 +162,7 @@ namespace WindowsFormsApplication1
                  EndPoint_Device = new IPEndPoint(IP_Device, Port7);
                  ConnectDevice = 7;
                  ChatDeviceDisplay();
+                 StatisticsDisplay();
              }
         }
         private void radioButton8_CheckedChanged(object sender, EventArgs e)
@@ -166,20 +173,32 @@ namespace WindowsFormsApplication1
                 EndPoint_Device = new IPEndPoint(IP_Device, Port8);
                 ConnectDevice = 8;
                 ChatDeviceDisplay();
+                StatisticsDisplay();
             }
         }
         #endregion
 
         #region  设备运行方式
         /// <summary>
-        /// 运行模式选择
+        /// 运行模式选择-轮询方式
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void RadButton1_CheckedChanged(object sender, EventArgs e)
         {
-            if (radioButton1.Checked == true)
+            if (RadButton1.Checked == true)
                 RunMode = 1;
+        }
+        /// <summary>
+        /// 运行模式选择-联网运行
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+
+        private void RadButton2_CheckedChanged(object sender, EventArgs e)
+        {
+            if (RadButton2.Checked == true)
+                RunMode = 2;
         }
         /// <summary>
         /// 运行模式配置
@@ -194,7 +213,7 @@ namespace WindowsFormsApplication1
             TData[7] =0x3E;
             Information.Length = 0;
             Information.Append(System.DateTime.Now.ToString() + " ");
-           
+            Information.Append("运行模式配置！");
             Information.Append(System.Environment.NewLine);
             Info.Update = true;
             SendMessage(8);
@@ -240,6 +259,7 @@ namespace WindowsFormsApplication1
                 ChatDeviceEnable(false);
                 ChatDeviceDisplay();
             }
+            StatisticsEnable();
         }
         /// <summary>
         /// 控制通信设备按钮状态
@@ -340,6 +360,7 @@ namespace WindowsFormsApplication1
                     }
                 }
             }
+            StatisticsEnable();
         }
 
         /// <summary>
@@ -554,9 +575,60 @@ namespace WindowsFormsApplication1
             }
         }
         #endregion
-       
-       
-        
+
+        #region        运行统计部分
+        /// <summary>
+        /// 统计界面显示
+        /// </summary>
+        void StatisticsDisplay()
+        {
+            for(byte i=1;i<=7;i++)
+            {
+                foreach (Control ctl in this.groupBox4.Controls)   //遍历通信设置部分所有控件
+                {
+                    if (ctl is Button)
+                    {
+                        if (ctl.Name == ("Btn1" + i.ToString()))
+                        {
+                            if (i < ConnectDevice)
+                                ctl.Text ="设备" + i.ToString();
+                            else
+                            {
+                                ctl.Text = "设备" + (i + 1).ToString();
+                            }
+                        }  
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// 统计界面按钮使能
+        /// </summary>
+        void StatisticsEnable()
+        {
+            for (byte i = 0; i < 7; i++)
+            {
+                foreach (Control ctl in this.groupBox4.Controls)   //遍历通信设置部分所有控件
+                {
+                    if (ctl is Button)
+                    {
+                        if (ctl.Name == ("Btn1" + (i+1).ToString()))
+                        {
+                            if (ConnectToDevices[i] != 0)
+                                ctl.Enabled = true;
+                            else
+                                ctl.Enabled = false ;
+                        }
+                    }
+                }
+            }
+            if (DeviceScale == 0)
+                Btn18.Enabled = true;
+            else
+                Btn18.Enabled = false;
+        }
+        #endregion
+
         void Info_Event(object sender, EventArgs e) //接收到设备数据触发事件
         {
             richTextBox1.AppendText(Information.ToString());       //显示错误详细信息
@@ -595,7 +667,7 @@ namespace WindowsFormsApplication1
                                 for (byte i = 0; i < 7; i++)
                                 {
                                     if (RData[i + 4] != 0)
-                                        Information.Append(RData[i + 3].ToString() + " ");
+                                        Information.Append(RData[i + 4].ToString() + " ");
                                 }
                                 Information.Append("信号强度： " + RData[11].ToString());
                             }
@@ -621,10 +693,15 @@ namespace WindowsFormsApplication1
                             }
                             StartVoltage = RData[11];
                             ChatDeviceDisplays();
+                            StatisticsEnable();
                         }
                         break;
-                    case 0x03:      //回传设备配置信息
-                        
+                    case 0x03:      //设备运行模式设置
+                        Information.Length = 0;
+                        Information.Append(System.DateTime.Now.ToString() + " ");
+                        Information.Append("设备运行模式设置成功！ ");
+                        Information.Append(System.Environment.NewLine);
+                        Info.Update = true;
                         break;
                 //        Information.Length = 0;
                 //        Information.Append(System.DateTime.Now.ToString() + " ");
@@ -767,10 +844,28 @@ namespace WindowsFormsApplication1
                     TData[i] =Convert.ToByte(Numl + i);
                 }
                 SendMessage(100);
-                label4.Text = Numl.ToString();
+            //   label4.Text = Numl.ToString();
             }
-            label6.Text = Numi.ToString();
+          //  label6.Text = Numi.ToString();
         }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            G.TolPacket = 5100;
+
+            for (byte i=0;i<18;i++)
+            {
+                 G.StatisPacket[i]=5000+i;
+                 G.PacketRate[i] = ((float)G.StatisPacket[i]) / ((float)G.TolPacket);
+
+            }
+          
+            Form Statis = new Statistics();
+            Statis.Show();
+        }
+
+
+      
 
        
     }

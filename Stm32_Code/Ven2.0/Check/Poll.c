@@ -59,12 +59,12 @@ void Poll(u8 Num)
 				  while(SM2200ReceiveFalg==0)	 //等待对方返回应答数据，如果0.5s内无返回，跳出循环
 				  {
 						time= TIM3->CNT;
-						if(time>5000)
+						if(time>8000)
 							break;
 				  }
+					k++;
           if((SM2200ReceiveFalg==0)&&(k<Num))	
 					{
-						k++;
 						goto OneAgain;
 					}	
           if(SM2200ReceiveFalg!=0)
@@ -90,6 +90,13 @@ void Poll(u8 Num)
 						}
 						SM2200ReceiveFalg=0;             //清空计数
 						ChannelReceive=0;
+					}
+					TIM3->CNT=0;
+					while(1)
+					{
+						time= TIM3->CNT;
+						if(time>500)
+							break;
 					}
 					k=0;
          	ChannelSend=0;
@@ -119,7 +126,14 @@ void Poll(u8 Num)
 				if(ChannelReceive&(1<<i))
 				{
 					ReDevice=SM2200RxBuf[i][1];
-					ReceNum[ReDevice-1][0]=(SM2200RxBuf[i][39]<<24)+(SM2200RxBuf[i][40]<<16)+(SM2200RxBuf[i][41]<<8)+SM2200RxBuf[i][42];
+					if(ReDevice<Device)
+					{
+						ReceNum[ReDevice-1][0]=(SM2200RxBuf[i][39]<<24)+(SM2200RxBuf[i][40]<<16)+(SM2200RxBuf[i][41]<<8)+SM2200RxBuf[i][42];
+					}
+					else
+					{
+						ReceNum[ReDevice-2][0]=(SM2200RxBuf[i][39]<<24)+(SM2200RxBuf[i][40]<<16)+(SM2200RxBuf[i][41]<<8)+SM2200RxBuf[i][42];
+					}
 					break;
 				}
 			}

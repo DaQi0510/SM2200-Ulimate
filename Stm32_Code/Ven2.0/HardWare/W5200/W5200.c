@@ -56,6 +56,7 @@ extern u8 Voltage;                   //记录电压幅值
 extern volatile u16 ToDevice;        //要发送到数据的设备号  
 extern volatile u8 ReDevice;        //接收到数据的设备号
 
+extern u8 RunMode;  //设备运行模式   轮询模式：1
 /******上位机命令定义*********/
 u8 Connect=0x00;      //建立连接命令 
 u8 DisConnect=0x01;   //断开连接命令 
@@ -858,6 +859,15 @@ void RJ45_2_Deal(void)     //接收数据处理
 				RJ45_2_WData[15]=0x3E;
 				RJ45_2_Write(RJ45_2_WData,16);
 			}
+		}
+		if(RJ45_2_RData[1]==RunModes)
+		{
+			//读取设备运行模式
+			RunMode =RJ45_2_RData[2];
+			//保存运行模式
+			AT24C02_WriteOneByte(0x20,RunMode);
+			//发送应答
+			RJ45_2_Write(RJ45_2_RData,8);
 		}
 //    if(RJ45_2_RData[1]==0x02)  //发送信息确认
 //		{
