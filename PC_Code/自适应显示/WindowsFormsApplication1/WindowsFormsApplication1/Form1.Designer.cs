@@ -443,6 +443,7 @@
             this.Btn18.TabIndex = 7;
             this.Btn18.Text = "本设备";
             this.Btn18.UseVisualStyleBackColor = true;
+            this.Btn18.Click += new System.EventHandler(this.Btn1_Click);
             // 
             // Btn17
             // 
@@ -453,6 +454,7 @@
             this.Btn17.TabIndex = 6;
             this.Btn17.Text = "设备7";
             this.Btn17.UseVisualStyleBackColor = true;
+            this.Btn17.Click += new System.EventHandler(this.Btn1_Click);
             // 
             // Btn16
             // 
@@ -463,6 +465,7 @@
             this.Btn16.TabIndex = 5;
             this.Btn16.Text = "设备6";
             this.Btn16.UseVisualStyleBackColor = true;
+            this.Btn16.Click += new System.EventHandler(this.Btn1_Click);
             // 
             // Btn15
             // 
@@ -473,6 +476,7 @@
             this.Btn15.TabIndex = 4;
             this.Btn15.Text = "设备5";
             this.Btn15.UseVisualStyleBackColor = true;
+            this.Btn15.Click += new System.EventHandler(this.Btn1_Click);
             // 
             // Btn14
             // 
@@ -483,6 +487,7 @@
             this.Btn14.TabIndex = 3;
             this.Btn14.Text = "设备4";
             this.Btn14.UseVisualStyleBackColor = true;
+            this.Btn14.Click += new System.EventHandler(this.Btn1_Click);
             // 
             // Btn13
             // 
@@ -493,6 +498,7 @@
             this.Btn13.TabIndex = 2;
             this.Btn13.Text = "设备3";
             this.Btn13.UseVisualStyleBackColor = true;
+            this.Btn13.Click += new System.EventHandler(this.Btn1_Click);
             // 
             // Btn12
             // 
@@ -503,6 +509,7 @@
             this.Btn12.TabIndex = 1;
             this.Btn12.Text = "设备2";
             this.Btn12.UseVisualStyleBackColor = true;
+            this.Btn12.Click += new System.EventHandler(this.Btn1_Click);
             // 
             // Btn11
             // 
@@ -513,16 +520,17 @@
             this.Btn11.TabIndex = 0;
             this.Btn11.Text = "设备1";
             this.Btn11.UseVisualStyleBackColor = true;
+            this.Btn11.Click += new System.EventHandler(this.Btn1_Click);
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(288, 168);
+            this.button2.Location = new System.Drawing.Point(393, 173);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 22;
             this.button2.Text = "button2";
             this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click_1);
+            this.button2.Click += new System.EventHandler(this.button2_Click_2);
             // 
             // Form1
             // 

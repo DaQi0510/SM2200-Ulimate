@@ -56,7 +56,10 @@ extern u8 Voltage;                   //记录电压幅值
 extern volatile u16 ToDevice;        //要发送到数据的设备号  
 extern volatile u8 ReDevice;        //接收到数据的设备号
 
-extern u8 RunMode;  //设备运行模式   轮询模式：1
+extern u8 RunMode;          //设备运行模式   轮询模式：1
+extern u32 ReceNum[7][19];  //记录向各个设备的发送、接收次数
+extern volatile u8 Device;  //设备号
+extern volatile u8  ConnectDevice[7];//连接设备号
 /******上位机命令定义*********/
 u8 Connect=0x00;      //建立连接命令 
 u8 DisConnect=0x01;   //断开连接命令 
@@ -804,7 +807,8 @@ void EXTI9_5_IRQHandler(void)
 }
 void RJ45_2_Deal(void)     //接收数据处理
 {
-  u8 i;
+  u8 i,j,k;
+	u32 tem;
 	if((RJ45_2_RData[0]==0x3C)&&(RJ45_2_RData[RJ45_2_RLength-1]==0x3E))    //判断数据包头包尾
 	{
 		if(RJ45_2_RData[1]==Connect)  //与电脑建立连接
@@ -858,6 +862,63 @@ void RJ45_2_Deal(void)     //接收数据处理
 				RJ45_2_WData[11]=Voltage;
 				RJ45_2_WData[15]=0x3E;
 				RJ45_2_Write(RJ45_2_WData,16);
+			}
+			if(RJ45_2_RData[2]==0x02)   //统计信息读取
+			{
+				RJ45_2_WData[0]=0x3C;
+				RJ45_2_WData[1]=PollChat;
+				RJ45_2_WData[2]=0x02;
+				RJ45_2_WData[3]=RJ45_2_RData[3];
+				if(RJ45_2_RData[3]==Device)  //从模式
+				{
+					for(j=0;j<7;j++)
+					{
+						if(ReceNum[j][0]!=0)
+							break;
+					}
+					tem=ReceNum[j][0];
+					for(i=0;i<4;i++)
+					{
+						RJ45_2_WData[7-i]=tem&0xff;
+						tem=tem>>8;
+					}
+					for(i=0;i<18;i++)
+					{
+						tem=ReceNum[j][1+i];
+						for(k=0;k<4;k++)
+						{
+							RJ45_2_WData[11+4*i-k]=tem&0xff;
+							tem=tem>>8;
+						}
+						RJ45_2_WData[80+i]=ChannelFrenquence[i]+1;
+					}	
+				}
+				else                 //主模式
+				{
+					for(j=0;j<7;j++)
+					{
+						if(ConnectDevice[j]==RJ45_2_RData[3])
+							break;
+					}
+					tem=ReceNum[j][0];
+					for(i=0;i<4;i++)
+					{
+						RJ45_2_WData[7-i]=tem&0xff;
+						tem=tem>>8;
+					}
+					for(i=0;i<18;i++)
+					{
+						tem=ReceNum[j][1+i];
+						for(k=0;k<4;k++)
+						{
+							RJ45_2_WData[11+4*i-k]=tem&0xff;
+							tem=tem>>8;
+						}
+						RJ45_2_WData[80+i]=ChannelFrenquence[i]+1;
+					}	
+				}
+			  RJ45_2_WData[99]=0x3E;
+				RJ45_2_Write(RJ45_2_WData,100);
 			}
 		}
 		if(RJ45_2_RData[1]==RunModes)

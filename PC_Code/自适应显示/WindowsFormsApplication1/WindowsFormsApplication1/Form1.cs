@@ -627,6 +627,48 @@ namespace WindowsFormsApplication1
             else
                 Btn18.Enabled = false;
         }
+        /// <summary>
+        /// 按键功能部分
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Btn1_Click(object sender, EventArgs e)
+        {
+            //找到触发事件的按键
+            Button btn = (Button)sender;
+            for (byte i = 1; i < 8; i++)
+            {
+                if (btn.Name == "Btn1" + i.ToString())
+                {
+                    TData[0] = 0x3C;  //<
+                    TData[1] = PollChat;
+                    TData[2] = 0x02;
+                    TData[3] = ConnectToDevices[i-1]; //>
+                    TData[7] = 0x3E; //>
+                    Information.Length = 0;
+                    Information.Append(System.DateTime.Now.ToString() + " ");
+                    Information.Append("获取设备 " + ConnectToDevices[i-1].ToString ()+" 数据包统计信息！");
+                    Information.Append(System.Environment.NewLine);
+                    Info.Update = true;
+                    SendMessage(8);
+                }
+            }
+            //从模式下调取本设备数据包统计
+            if (btn.Name == "Btn18")
+            {
+                TData[0] = 0x3C;  //<
+                TData[1] = PollChat;
+                TData[2] = 0x02;
+                TData[3] = ConnectDevice; //>
+                TData[7] = 0x3E; //>
+                Information.Length = 0;
+                Information.Append(System.DateTime.Now.ToString() + " ");
+                Information.Append("获取本设备 " + ConnectDevice.ToString() + " 数据包统计信息！");
+                Information.Append(System.Environment.NewLine);
+                Info.Update = true;
+                SendMessage(8);
+            }
+        }
         #endregion
 
         void Info_Event(object sender, EventArgs e) //接收到设备数据触发事件
@@ -694,6 +736,34 @@ namespace WindowsFormsApplication1
                             StartVoltage = RData[11];
                             ChatDeviceDisplays();
                             StatisticsEnable();
+                        }
+                        if (RData[2] == 0x02)     //获取数据包统计信息
+                        {
+                            Information.Length = 0;
+                            Information.Append(System.DateTime.Now.ToString() + " ");
+                            Information.Append("获取数据包统计信息成功！");
+                            Information.Append(System.Environment.NewLine);
+                            Info.Update = true;
+                            G.Device = RData[3];
+                            G.TolPacket = 0;
+                            //数据包总数
+                            for(byte i=0;i<4;i++)
+                            {
+                                G.TolPacket = G.TolPacket << 8;
+                                G.TolPacket += RData[4 + i];
+                            }
+                            //各通道接收数据包数
+                            for (byte i = 0; i < 18; i++)
+                            {
+                                G.StatisPacket[i] = 0;
+                                for (byte j = 0; j < 4; j++)
+                                {
+                                    G.StatisPacket[i] = G.StatisPacket[i] << 8;
+                                    G.StatisPacket[i] += RData[8+4*i+j];
+                                }
+                                G.Frequence [i]= RData[80+i];   //通信频点统计
+                                G.PacketRate[i] = 100*((float)G.StatisPacket[i]) / ((float)G.TolPacket);
+                            }
                         }
                         break;
                     case 0x03:      //设备运行模式设置
@@ -849,20 +919,14 @@ namespace WindowsFormsApplication1
           //  label6.Text = Numi.ToString();
         }
 
-        private void button2_Click_1(object sender, EventArgs e)
+
+        private void button2_Click_2(object sender, EventArgs e)
         {
-            G.TolPacket = 5100;
-
-            for (byte i=0;i<18;i++)
-            {
-                 G.StatisPacket[i]=5000+i;
-                 G.PacketRate[i] = ((float)G.StatisPacket[i]) / ((float)G.TolPacket);
-
-            }
-          
             Form Statis = new Statistics();
             Statis.Show();
         }
+
+       
 
 
       

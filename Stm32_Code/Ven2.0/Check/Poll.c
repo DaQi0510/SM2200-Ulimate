@@ -31,7 +31,6 @@ void Poll(u8 Num)
 				if(ConnectDevice[i]!=0)    //需与该设备建立建立载波通信
 				{
 					ChannelSend=0x03ffff;
-					ReceNum[i][0]+=1;       //发送次数加一
 					/*******发送数据包组建***********/
 					for(j=0;j<18;j++)
 					{
@@ -46,10 +45,10 @@ void Poll(u8 Num)
 							else
 								SM2200TxBuf[j][4+2*l]=0;                  //通道发送使能位
 						}
-						SM2200TxBuf[j][39]=(ReceNum[i][0]&0xFF000000)>>24;
-						SM2200TxBuf[j][40]=(ReceNum[i][0]&0x00FF0000)>>16;
-						SM2200TxBuf[j][41]=(ReceNum[i][0]&0x0000FF00)>>8;
-						SM2200TxBuf[j][42]=(ReceNum[i][0]&0x000000FF);
+						SM2200TxBuf[j][39]=((ReceNum[i][0]+1)&0xFF000000)>>24;
+						SM2200TxBuf[j][40]=((ReceNum[i][0]+1)&0x00FF0000)>>16;
+						SM2200TxBuf[j][41]=((ReceNum[i][0]+1)&0x0000FF00)>>8;
+						SM2200TxBuf[j][42]=((ReceNum[i][0]+1)&0x000000FF);
 						ChannelSize[j]=43;
 						ChannelType[j]=0;
 					}
@@ -61,12 +60,14 @@ void Poll(u8 Num)
 						time= TIM3->CNT;
 						if(time>8000)
 							break;
-				  }
+				  }				
 					k++;
           if((SM2200ReceiveFalg==0)&&(k<Num))	
 					{
+						ReceNum[i][0]+=1;       //发送次数加一
 						goto OneAgain;
-					}	
+					}
+					ReceNum[i][0]+=1;       //发送次数加一					
           if(SM2200ReceiveFalg!=0)
 					{
 						TIM3->CNT=0;
