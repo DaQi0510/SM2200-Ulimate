@@ -57,10 +57,12 @@
             this.comboBox2 = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.RadButton3 = new System.Windows.Forms.RadioButton();
             this.RadButton2 = new System.Windows.Forms.RadioButton();
             this.button4 = new System.Windows.Forms.Button();
             this.RadButton1 = new System.Windows.Forms.RadioButton();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.button2 = new System.Windows.Forms.Button();
             this.Btn18 = new System.Windows.Forms.Button();
             this.Btn17 = new System.Windows.Forms.Button();
             this.Btn16 = new System.Windows.Forms.Button();
@@ -69,7 +71,6 @@
             this.Btn13 = new System.Windows.Forms.Button();
             this.Btn12 = new System.Windows.Forms.Button();
             this.Btn11 = new System.Windows.Forms.Button();
-            this.button2 = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -373,6 +374,7 @@
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.RadButton3);
             this.groupBox3.Controls.Add(this.RadButton2);
             this.groupBox3.Controls.Add(this.button4);
             this.groupBox3.Controls.Add(this.RadButton1);
@@ -382,6 +384,18 @@
             this.groupBox3.TabIndex = 10;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "运行方式";
+            // 
+            // RadButton3
+            // 
+            this.RadButton3.AutoSize = true;
+            this.RadButton3.Location = new System.Drawing.Point(19, 69);
+            this.RadButton3.Name = "RadButton3";
+            this.RadButton3.Size = new System.Drawing.Size(71, 16);
+            this.RadButton3.TabIndex = 21;
+            this.RadButton3.TabStop = true;
+            this.RadButton3.Text = "通信频点";
+            this.RadButton3.UseVisualStyleBackColor = true;
+            this.RadButton3.CheckedChanged += new System.EventHandler(this.radioButton9_CheckedChanged);
             // 
             // RadButton2
             // 
@@ -419,6 +433,7 @@
             // 
             // groupBox4
             // 
+            this.groupBox4.Controls.Add(this.button2);
             this.groupBox4.Controls.Add(this.Btn18);
             this.groupBox4.Controls.Add(this.Btn17);
             this.groupBox4.Controls.Add(this.Btn16);
@@ -429,10 +444,21 @@
             this.groupBox4.Controls.Add(this.Btn11);
             this.groupBox4.Location = new System.Drawing.Point(514, 16);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(109, 151);
+            this.groupBox4.Size = new System.Drawing.Size(109, 174);
             this.groupBox4.TabIndex = 21;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "运行统计";
+            // 
+            // button2
+            // 
+            this.button2.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.button2.Location = new System.Drawing.Point(24, 147);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(57, 23);
+            this.button2.TabIndex = 22;
+            this.button2.Text = "显示";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click_2);
             // 
             // Btn18
             // 
@@ -522,22 +548,11 @@
             this.Btn11.UseVisualStyleBackColor = true;
             this.Btn11.Click += new System.EventHandler(this.Btn1_Click);
             // 
-            // button2
-            // 
-            this.button2.Location = new System.Drawing.Point(393, 173);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 22;
-            this.button2.Text = "button2";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click_2);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(635, 398);
-            this.Controls.Add(this.button2);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
@@ -599,6 +614,7 @@
         private System.Windows.Forms.Button Btn12;
         private System.Windows.Forms.Button Btn11;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.RadioButton RadButton3;
     }
 }
 

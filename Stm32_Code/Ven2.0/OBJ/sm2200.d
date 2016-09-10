@@ -30,3 +30,4 @@
 ..\obj\sm2200.o: ..\HardWare\LCD\lcd.h
 ..\obj\sm2200.o: ..\HardWare\WWDG\wwdg.h
 ..\obj\sm2200.o: ..\FWLIB\inc\stm32f4xx_wwdg.h
+..\obj\sm2200.o: ..\HardWare\LED\led.h

@@ -1,6 +1,7 @@
 #include "sm2200.h"
 #include "wwdg.h"
 #include "delay.h"
+#include "led.h"
 
 /*******************SM2200部分****************************/
 extern volatile u8 SM2200TxBuf[18][128];    //18个通道发送数据包数组
@@ -11,6 +12,7 @@ extern volatile u8 ChannelType[18];         //各通道发送模式
 extern volatile u32 ChannelSend;            //标记发送的通道
 extern volatile u32 ChannelReceive;         //标记接收的通道
 extern volatile u8 SM2200ReceiveFalg;       //当有数据时接收标记
+extern volatile u8 SM2200ReadFlag;          //标记程序正在读取数据 1正在读取  0完成读取
 
 /*******************设备部分**************************/
 extern volatile u8  Device;            //设备号
@@ -188,6 +190,7 @@ void SM2200_Receive(void)
 			}
 		}		
 	}
+	SM2200ReadFlag=0;
 }
 /*************相应网络配置信息********************/
 void SM2200Respond(void)
@@ -331,6 +334,7 @@ void EXTI0_IRQHandler(void)
 		Event=OfdmXcvrRead (INTERRUPT_EVENT,2);
 		if(Event&0x01)
 		{
+			SM2200ReadFlag=1;
 			SM2200_Receive();
 			SM2200ReceiveFalg=1;
 		}
@@ -439,6 +443,18 @@ void NVIC_EXTI(u8 En)
 	*****************/
 	if(En)EXTI->IMR|=1<<0 | 1<<5 | 1<<14;   //不屏蔽中断
   else EXTI->IMR&=~(1<<0 | 1<<5 | 1<<14); //屏蔽中断
+}
+/**
+*@brief		简短延时
+*@param		num 粗略控制延时大小
+*/
+void Dealyx(u16 num)
+{
+	u16 i,j;
+	for(j=0;j<num;j++)
+	{
+		for(i=0;i<20;i++);
+	}
 }
 
 

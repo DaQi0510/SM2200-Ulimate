@@ -8,6 +8,8 @@ extern u8  ConnectState;       //设备连接状态
 extern volatile u8 ConnectDevice[7];     //连接设备号
 extern volatile u8 DeviceScale;          //连接从属级别   0从 1主
 
+extern volatile u32 SendTem;       //临时发送通道
+
 extern volatile u8 Command[74];       //主机控制命令
 extern u8 ServiceIP[4];
 extern u16 ServicePort;
@@ -60,6 +62,9 @@ extern u8 RunMode;          //设备运行模式   轮询模式：1
 extern u32 ReceNum[7][19];  //记录向各个设备的发送、接收次数
 extern volatile u8 Device;  //设备号
 extern volatile u8  ConnectDevice[7];//连接设备号
+extern u16 RateTime[7];                      //接收发送一包数据时间
+extern u8 Rates[7];                          //接收到通道数
+extern u16 ReceRoise[7][18];                 //记录各个通道的信号噪声
 /******上位机命令定义*********/
 u8 Connect=0x00;      //建立连接命令 
 u8 DisConnect=0x01;   //断开连接命令 
@@ -67,6 +72,11 @@ u8 PollChat=0x02;     //轮询通信配置主地址
 u8 RunModes=0x03; //获取通信配置信息
 u8 WriteTem[2];
 u8 ReadTem[2];
+
+//频点查找模式，自变量定义
+extern u8  FConnectDevice;  //连接设备号
+extern u8  FScale;          //连接设备号从属级别
+extern u8  FStartVoltage;   //初始信号幅值
 /********************RJ45_1部分*****************************/
 /*
 --------------|-------------
@@ -818,6 +828,7 @@ void RJ45_2_Deal(void)     //接收数据处理
 			  RJ45_2_WData[7]=0x3E;
 				RJ45_2_Write(RJ45_2_WData,8);
 			  RJ45_2_Connect=1;
+			i=0;
 		}
 		if(RJ45_2_RData[1]==DisConnect)  //与电脑断开连接
 		{
@@ -838,6 +849,14 @@ void RJ45_2_Deal(void)     //接收数据处理
 					ConnectDevice[i]=RJ45_2_RData[4+i];
 				}
 				Voltage=RJ45_2_RData[11];
+				if(Voltage<=MaxVoltage1)    //18个通道
+					SendTem =0x3ffff;
+				if((Voltage>MaxVoltage1)&&(Voltage<=MaxVoltage2))     //9个通道
+					SendTem =0x15AAA;
+				if((Voltage>MaxVoltage2)&&(Voltage<=MaxVoltage3))     //6个通道
+					SendTem =0x12492;
+				if(Voltage>MaxVoltage3)  //3个通道
+					SendTem =0x8208;
 				OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);//以为着最多可开2~3个通道
 				/******保存配置信息**********/
 				AT24C02_WriteOneByte(0x13,DeviceScale);   //设备主从模式
@@ -891,6 +910,8 @@ void RJ45_2_Deal(void)     //接收数据处理
 							tem=tem>>8;
 						}
 						RJ45_2_WData[80+i]=ChannelFrenquence[i]+1;
+						RJ45_2_WData[101+2*i]=ReceRoise[j][i]/256;
+						RJ45_2_WData[102+2*i]=ReceRoise[j][i]%256;
 					}	
 				}
 				else                 //主模式
@@ -916,15 +937,29 @@ void RJ45_2_Deal(void)     //接收数据处理
 						}
 						RJ45_2_WData[80+i]=ChannelFrenquence[i]+1;
 					}	
+					RJ45_2_WData[98]=RateTime[j]/256;
+					RJ45_2_WData[99]=RateTime[j]%256;   //发送到接收经历的时间
+					RJ45_2_WData[100]=Rates[j];         //接收通道个数
+					for(i=0;i<18;i++)                   //信道噪声
+					{
+						 RJ45_2_WData[101+2*i]=ReceRoise[j][i]/256;
+						 RJ45_2_WData[102+2*i]=ReceRoise[j][i]%256;
+					}
 				}
-			  RJ45_2_WData[99]=0x3E;
-				RJ45_2_Write(RJ45_2_WData,100);
+			  RJ45_2_WData[139]=0x3E;
+				RJ45_2_Write(RJ45_2_WData,140);
 			}
 		}
 		if(RJ45_2_RData[1]==RunModes)
 		{
 			//读取设备运行模式
 			RunMode =RJ45_2_RData[2];
+			if(RunMode==3)    //查找频点模式
+			{
+				FScale=RJ45_2_RData[3];
+				FStartVoltage =RJ45_2_RData[4];
+				FConnectDevice =RJ45_2_RData[5];
+			}
 			//保存运行模式
 			AT24C02_WriteOneByte(0x20,RunMode);
 			//发送应答

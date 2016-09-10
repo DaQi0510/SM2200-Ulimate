@@ -13,6 +13,13 @@ namespace WindowsFormsApplication1
         public static float[] PacketRate = new float[18];     //数据包接收率
         public static byte[] Frequence = new byte[18];        //数据包接收率
         public static byte Device;                            //记录显示的设备号
+        public static byte ConnectDevice;                     //记录网络连接的设备号
+        public static byte PacketNum=88;                      //记录每个通道的数据个数
+        public static float Rates;                            //记录通信速率
+        public static byte StartVoltage;                      //记录信道查找初始电压
+        public static byte ConnectToDevice;                   //记录信道查找连接设备
+        public static byte FScale;                            //记录信道查找从属级别 1主模式 0从模式  
+        public static Int32[] Noise = new Int32[18];          //记录信道噪声
         //SM2200通信频点(刨除前两个频点)
         public static float[] Frequences={14.6f, 19.5f, 24.4f, 29.3f, 34.2f, 39.1f, 43.9f, 48.8f, 53.7f, 58.6f,
                                           63.5f, 68.4f, 73.2f, 78.1f, 83.0f, 87.9f, 92.8f, 97.7f, 102.5f, 107.4f,

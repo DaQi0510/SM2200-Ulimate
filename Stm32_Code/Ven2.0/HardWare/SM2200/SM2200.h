@@ -88,7 +88,7 @@ void OfdmXcvrWrite(unsigned char address, unsigned char size, unsigned long writ
 void SPI_SM2200(void);
 void SM2200_Receive(void);
 void NVIC_EXTI(u8 En);
-
+void Dealyx(u16 num);
 #endif
 
 

@@ -1,10 +1,14 @@
 #include "time.h"
 #include "W5200.h"
+#include "sm2200.h"
 #include "led.h"
 #include "stm32f4xx_gpio.h"
 
 extern u8 RJ45_1_Connect;     //连接状态
 extern u8 RJ45_2_Connect;     //连接状态
+extern u8 RateFlag;  
+extern volatile u8 SM2200ReadFlag; //标记程序正在读取数据 1正在读取  0完成读取
+extern volatile u32 ChannelReceive;         //标记接收的通道
 
 // TIM3->CNT记录当前数值
 /********************函数说明**********************/
@@ -75,10 +79,23 @@ void TIM4_Init(void)
 //      中断函数
 void TIM4_IRQHandler(void)
 {
-	u8 Flag1,Flag2;  //读取网口状态
+	u8 Flag1,Flag2,i;  //读取网口状态
+	u32 ChannelR;
 	if(TIM_GetITStatus(TIM4,TIM_IT_Update)==SET) //溢出中断
 	{
 	  LED1=!LED1;
+		ChannelR=OfdmXcvrRead(RECEIVE_STATUS, 3);
+		if((ChannelR!=0)&&(SM2200ReadFlag==0))   //有数据阻塞
+		{
+			for(i=0;i<200;i++);
+		}
+		if((ChannelR!=0)&&(SM2200ReadFlag==0))   //有数据阻塞
+		{
+			SM2200_Receive();
+			ChannelReceive=0;
+			SM2200_Init();
+	    LED3 =!LED3 ;
+		}
 		Flag1=RJ45_1_Read_Register(Sn_SR(0));
 		Flag2=RJ45_2_Read_Register(Sn_SR(0));
 		//调试接口信号灯显示
@@ -119,6 +136,44 @@ void TIM4_IRQHandler(void)
 		{
 			LED5 =0;
 		}
+		TIM_ClearITPendingBit(TIM4,TIM_IT_Update);  //清除中断标志位
 	}
-	TIM_ClearITPendingBit(TIM4,TIM_IT_Update);  //清除中断标志位
+	
+}
+/**
+*@brief		定时500ms.用于统计通信速率
+*/
+void TIM5_Init(void)
+{
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+	
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM5,ENABLE);  ///使能TIM3时钟
+	
+  TIM_TimeBaseInitStructure.TIM_Period = 6000-1; 	//自动重装载值
+	TIM_TimeBaseInitStructure.TIM_Prescaler=8400-1;  //定时器分频
+	TIM_TimeBaseInitStructure.TIM_CounterMode=TIM_CounterMode_Up; //向上计数模式
+	TIM_TimeBaseInitStructure.TIM_ClockDivision=TIM_CKD_DIV1; 
+
+	
+	TIM_TimeBaseInit(TIM5,&TIM_TimeBaseInitStructure);//初始化TIM3
+	
+	TIM_ITConfig(TIM5,TIM_IT_Update,ENABLE); //允许定时器3更新中断
+	TIM_Cmd(TIM5,ENABLE ); //使能定时器3
+	
+	NVIC_InitStructure.NVIC_IRQChannel=TIM5_IRQn; //定时器3中断
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0x02; //抢占优先级1
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority=0x02; //子优先级3
+	NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+}
+//中断函数
+void TIM5_IRQHandler(void)
+{
+	if(TIM_GetITStatus(TIM5,TIM_IT_Update)==SET) //溢出中断
+	{
+		RateFlag=1;
+		TIM_ClearITPendingBit(TIM5,TIM_IT_Update);  //清除中断标志位
+	}
+	
 }

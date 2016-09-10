@@ -26,8 +26,8 @@ namespace WindowsFormsApplication1
         IPAddress IP_Device;
         IPEndPoint EndPoint_Device = null;
         static Socket Socket_Device = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        static byte[] RData = new byte[128];
-        static byte[] TData = new byte[128];  
+        static byte[] RData = new byte[1024];
+        static byte[] TData = new byte[1024];  
         string IP1 = "192.168.1.61";
         int Port1 = 3590+20*1;
         string IP2 = "192.168.1.63";
@@ -92,6 +92,7 @@ namespace WindowsFormsApplication1
                 IP_Device = IPAddress.Parse(IP1);
                 EndPoint_Device = new IPEndPoint(IP_Device, Port1);
                 ConnectDevice = 1;
+                G.ConnectDevice = ConnectDevice;
                 ChatDeviceDisplay();
                 StatisticsDisplay();
             }
@@ -104,6 +105,7 @@ namespace WindowsFormsApplication1
                 IP_Device = IPAddress.Parse(IP2);
                 EndPoint_Device = new IPEndPoint(IP_Device, Port2);
                 ConnectDevice = 2;
+                G.ConnectDevice = ConnectDevice;
                 ChatDeviceDisplay();
                 StatisticsDisplay(); 
             }
@@ -116,6 +118,7 @@ namespace WindowsFormsApplication1
                 IP_Device = IPAddress.Parse(IP3);
                 EndPoint_Device = new IPEndPoint(IP_Device, Port3);
                 ConnectDevice = 3;
+                G.ConnectDevice = ConnectDevice;
                 ChatDeviceDisplay();
                 StatisticsDisplay();
             }
@@ -128,6 +131,7 @@ namespace WindowsFormsApplication1
                 IP_Device = IPAddress.Parse(IP4);
                 EndPoint_Device = new IPEndPoint(IP_Device, Port4);
                 ConnectDevice = 4;
+                G.ConnectDevice = ConnectDevice;
                 ChatDeviceDisplay();
                 StatisticsDisplay();
             }
@@ -139,6 +143,7 @@ namespace WindowsFormsApplication1
                 IP_Device = IPAddress.Parse(IP5);
                 EndPoint_Device = new IPEndPoint(IP_Device, Port5);
                 ConnectDevice = 5;
+                G.ConnectDevice = ConnectDevice;
                 ChatDeviceDisplay();
                 StatisticsDisplay();
             }
@@ -150,6 +155,7 @@ namespace WindowsFormsApplication1
                 IP_Device = IPAddress.Parse(IP6);
                 EndPoint_Device = new IPEndPoint(IP_Device, Port6);
                 ConnectDevice = 6;
+                G.ConnectDevice = ConnectDevice;
                 ChatDeviceDisplay();
                 StatisticsDisplay();
             }
@@ -161,6 +167,7 @@ namespace WindowsFormsApplication1
                  IP_Device = IPAddress.Parse(IP7);
                  EndPoint_Device = new IPEndPoint(IP_Device, Port7);
                  ConnectDevice = 7;
+                 G.ConnectDevice = ConnectDevice;
                  ChatDeviceDisplay();
                  StatisticsDisplay();
              }
@@ -172,6 +179,7 @@ namespace WindowsFormsApplication1
                 IP_Device = IPAddress.Parse(IP8);
                 EndPoint_Device = new IPEndPoint(IP_Device, Port8);
                 ConnectDevice = 8;
+                G.ConnectDevice = ConnectDevice;
                 ChatDeviceDisplay();
                 StatisticsDisplay();
             }
@@ -194,11 +202,24 @@ namespace WindowsFormsApplication1
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-
         private void RadButton2_CheckedChanged(object sender, EventArgs e)
         {
             if (RadButton2.Checked == true)
                 RunMode = 2;
+        }
+        /// <summary>
+        ///  运行模式选择-查找通信频点
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void radioButton9_CheckedChanged(object sender, EventArgs e)
+        {
+            if (RadButton3.Checked == true)
+            {
+                RunMode = 3;
+                Form CheckFrequence = new Form2();
+                CheckFrequence.ShowDialog();
+            }
         }
         /// <summary>
         /// 运行模式配置
@@ -210,6 +231,12 @@ namespace WindowsFormsApplication1
             TData[0] = 0x3C;  //<
             TData[1] = RunModes ;
             TData[2] = RunMode ;
+            if (RunMode == 3)   //信道查找模式
+            {
+                TData[3] = G.FScale;
+                TData[4] = G.StartVoltage;
+                TData[5] = G.ConnectToDevice;
+            }
             TData[7] =0x3E;
             Information.Length = 0;
             Information.Append(System.DateTime.Now.ToString() + " ");
@@ -505,7 +532,7 @@ namespace WindowsFormsApplication1
         {
             try
             {
-                Socket_Device.BeginReceive(RData, 0, 128, 0, new AsyncCallback(ReceiveCallback_Device), Socket_Device);
+                Socket_Device.BeginReceive(RData, 0, 256, 0, new AsyncCallback(ReceiveCallback_Device), Socket_Device);
             }
             catch (Exception ex)
             {
@@ -643,11 +670,11 @@ namespace WindowsFormsApplication1
                     TData[0] = 0x3C;  //<
                     TData[1] = PollChat;
                     TData[2] = 0x02;
-                    TData[3] = ConnectToDevices[i-1]; //>
+                    TData[3] = ConnectToDevices[i - 1]; //>
                     TData[7] = 0x3E; //>
                     Information.Length = 0;
                     Information.Append(System.DateTime.Now.ToString() + " ");
-                    Information.Append("获取设备 " + ConnectToDevices[i-1].ToString ()+" 数据包统计信息！");
+                    Information.Append("获取设备 " + ConnectToDevices[i - 1].ToString() + " 数据包统计信息！");
                     Information.Append(System.Environment.NewLine);
                     Info.Update = true;
                     SendMessage(8);
@@ -668,6 +695,17 @@ namespace WindowsFormsApplication1
                 Info.Update = true;
                 SendMessage(8);
             }
+            
+        }
+        /// <summary>
+        /// 显示统计信息界面
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button2_Click_2(object sender, EventArgs e)
+        {
+            Form Statis = new Statistics();
+            Statis.Show();
         }
         #endregion
 
@@ -764,6 +802,14 @@ namespace WindowsFormsApplication1
                                 G.Frequence [i]= RData[80+i];   //通信频点统计
                                 G.PacketRate[i] = 100*((float)G.StatisPacket[i]) / ((float)G.TolPacket);
                             }
+                            G.Rates = ((float)(RData[100] * G.PacketNum * 8 * 20000)) / ((float)((RData[98] * 256 + RData[99])*1024));
+                            for (byte i = 0; i < 18; i++)
+                            {
+                                G.Noise[i] = RData[101 + 2 * i] ;
+                                G.Noise[i] = G.Noise[i]<<8;
+                                G.Noise[i] += RData[102 + 2 * i];
+                            }
+                            
                         }
                         break;
                     case 0x03:      //设备运行模式设置
@@ -772,6 +818,8 @@ namespace WindowsFormsApplication1
                         Information.Append("设备运行模式设置成功！ ");
                         Information.Append(System.Environment.NewLine);
                         Info.Update = true;
+                        break;
+                    case 0x04:   //通信频点查找应答部分
                         break;
                 //        Information.Length = 0;
                 //        Information.Append(System.DateTime.Now.ToString() + " ");
@@ -919,12 +967,10 @@ namespace WindowsFormsApplication1
           //  label6.Text = Numi.ToString();
         }
 
+       
 
-        private void button2_Click_2(object sender, EventArgs e)
-        {
-            Form Statis = new Statistics();
-            Statis.Show();
-        }
+
+       
 
        
 

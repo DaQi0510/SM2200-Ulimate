@@ -48,6 +48,10 @@ volatile u8 Command[74];             //主机控制命令
 volatile u8 Device;                   //设备号
 volatile u8  ConnectDevice[7];        //连接设备号
 u32 ReceNum[7][19];                   //记录向各个设备的发送、接收次数
+u16 ReceRoise[7][18];                 //记录各个通道的信号噪声
+u8 RateFlag;                          //通信速率标记位
+u16 RateTime[7];                      //接收发送一包数据时间
+u8 Rates[7];                          //接收到通道数
 volatile u8 DeviceScale;             //连接从属级别   0从 1主
 volatile u16 ToDevice;               //要发送数据到的设备号
 volatile u8 ReDevice;                //接收到数据的设备号
@@ -65,6 +69,7 @@ volatile u8 SM2200ReceiveFalg;       //当有数据时接收标记
 volatile u16 Noise[18];              //记录通道噪声
 volatile u8  ShakeChannel[18];       //记录通道噪声
 volatile u8 Voltage;                 //记录电压幅值
+volatile u8 SM2200ReadFlag;          //标记程序正在读取数据
 
 
 /************** W5500相关数据定义部分 ******************/
@@ -99,8 +104,17 @@ u16 RTR_Time=5000; //重新发送时间  Time=RTR_Time*100us
 u8 RCR_Num=3;     //重新发送次数 
 u16 NetRNum;
 u16 NetTNum;
-
+volatile u32 SendTem;       //临时发送通道
 u8 RunMode;  //设备运行模式   轮询模式：1
+//频点查找模式，自变量定义
+u8 FConnectDevice;  //连接设备号
+u8 FScale;          //连接设备号从属级别
+u8 FStartVoltage;   //初始信号幅值
+u8 FFlag[33];       //标记频点是否被测试过
+u8 FReceNum[33];    //标记该频点接收次数
+u8 FNosie[33];      //标记该频点噪声
+u8 FFrequence[18];  //使用频点值
+
 
 volatile u8 CommandFlag;
 
@@ -157,15 +171,24 @@ int main(void)
 	delay_ms(10);
 //	SetDeviceInformation(6,DeviceInformation,13);  //设置设备号、IP地址等信息
 	GetDeviceInformation();
+ if(Voltage<=MaxVoltage1)    //18个通道
+		SendTem =0x3ffff;
+	if((Voltage>MaxVoltage1)&&(Voltage<=MaxVoltage2))     //9个通道
+		SendTem =0x15AAA;
+	if((Voltage>MaxVoltage2)&&(Voltage<=MaxVoltage3))     //6个通道
+		SendTem =0x12492;
+	if(Voltage>MaxVoltage3)  //3个通道
+		SendTem =0x8208;
 	for(i=0;i<18;i++)
 	{
-		ChannelFrenquence[i]=20+4*i;
+		ChannelFrenquence[i]=35+3*i;
 	}
 	for(i=0;i<7;i++)  //计数单位清零
 	{
 		for(j=0;j<19;j++)
 			ReceNum[i][j]=0;
-	}  
+	} 
+  RateFlag =0;	
 	SM2200_Init();
 	delay_ms(10);
 	TIM3_Init(10000,8399);
@@ -191,6 +214,7 @@ int main(void)
 //		delay_ms(1000);
 //	}
 	TIM4_Init();    //用于设备运行指示，1S进一次中断
+	TIM5_Init();
 	trr++;
 	while(1)
 	{
@@ -198,6 +222,8 @@ int main(void)
 		{
 			case 0x01:    //轮询方式
 				Poll(3);
+				break;
+			case 0x03:   //查找频点模式
 				break;
 		}			
 			

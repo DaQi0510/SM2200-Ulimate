@@ -7,6 +7,8 @@
 extern volatile u8 Device;            //设备号
 extern volatile u8 ConnectDevice;     //连接设备号
 extern volatile u8 DeviceScale;       //连接从属级别   0从 1主
+extern u8 RJ45_2_Connect;             //连接状态
+extern u8 RunMode;                    //设备运行模式   轮询模式：1
 
 extern volatile u8 SM2200TxBuf[18][128];    //18个通道发送数据包数组
 extern volatile u8 SM2200RxBuf[18][128];    //18个通道接收数据包数组
@@ -19,6 +21,7 @@ extern volatile u8 SM2200ReceiveFalg;       //当有数据时接收标记
 extern volatile u16 Noise[18];              //记录通道噪声
 extern volatile u8  ShakeChannel[18];       //记录通道噪声
 extern u8 RJ45_1_WData[1024];
+extern u8 RJ45_2_WData[1024];
 extern u8 Voltage;                      //记录电压幅值
 
 /****************第一轮发现通信通道相关变量*********************/
@@ -34,7 +37,51 @@ u8 volatile RelayFrequence[18];        //频点中继
 u8 volatile M_SChannelNum=2;           //发送方到接收方用于通信的通道数目
 u8 volatile S_MChannelNum=2;           //接收方到发送方用于通信的通道数目
 u8 volatile ChannelNum_1;              //发送方和接收方握手占用总共通道数
+u8 ChannelRece[18];  //  从方记录接收通道数
 
+extern u8 FConnectDevice;  //连接设备号
+extern u8 FScale;          //连接设备号从属级别
+extern u8 FStartVoltage;   //初始信号幅值
+extern u8 FFlag[33];       //标记频点是否被测试过
+extern u8 FReceNum[33];    //标记该频点接收次数
+extern u8 FNosie[33];      //标记该频点噪声
+extern u8 FFrequence[18];  //使用频点值
+u8 FindMode;  // 0第一次建立握手  1 对方设备需调整
+extern volatile u32 SendTem;
+/**
+*@brief		通信频点查找频点部分初始化
+*@brief   初始频点1,3,5,7,9,11,13,15,16,17,19,21,23,25,27,29,31,33
+*/
+void FrequenceInit(void)
+{
+	u8 i,j;
+	for(i=0;i<18;i++)     //通信频点查找初始信号频点配置
+	{
+		if(i<8)
+			FFrequence[i]=2*i+1;
+		if(i==8)
+			FFrequence[i]=16;
+		if(i>8)
+			FFrequence[i]=2*i-1;	
+	}
+//	for(i=1;i<34;i++)  //标价通道是否经过测试 1测试过 0没测试过
+//	{
+//		FFlag[i-1]=0;
+//		for(j=0;j<18;j++)
+//		{
+//			if(FFrequence[j]==i)
+//			{
+//				FFlag[i-1]=1;
+//				break;
+//			}
+//		}
+//	}
+	for(i=0;i<18;i++)     //转换成SM2400通信频点
+	{
+		ChannelFrenquence[i]=FFrequence[j]*3+1;
+	}
+	SetSm2200Frenquence(18);   //18个通道设置
+}
 /**
   * 功能：查找通信测试频点，
   * 参数：StartVolatage 起始电压设置
@@ -43,187 +90,27 @@ u8 volatile ChannelNum_1;              //发送方和接收方握手占用总共通道数
  **/
 u8 FindChatChannel()
 {
-	u8 i,j;
-	if(Device==1)    //主动发送方
+	u8 i,j,flag;
+	if(FScale==1)  //主模式
 	{
-		if(MasterCheck_1(MinVoltage1,4)==1)    //第一次未能找到通信通道
+		FindMode=0;
+		flag=MasterCheck_1(FStartVoltage,FConnectDevice);
+		if(RJ45_2_Connect==1)     //网络进行监听，返回状态
 		{
-			RJ45_1_WData[0]='F';
-			RJ45_1_WData[1]='a';
-			RJ45_1_WData[3]='i';
-			RJ45_1_WData[4]='l';
-			RJ45_1_WData[5]=1;
-//			RJ45_1_Write(RJ45_1_WData,128);
+			RJ45_2_WData[0]=0x3C;   //数据包头
+			RJ45_2_WData[1]=0x04;   //应答地址
+			RJ45_2_WData[3]=0;      //初始建立握手通道
+			RJ45_2_WData[7]=0x3E;   //数据包尾
+			RJ45_2_Write(RJ45_2_WData,8);
+		}
+		if(flag==1)   //握手失败
 			return 1;
-		}	
-     		
-		else                                            //第一次发现通信通道
-		{
-			RJ45_1_WData[0]='O';
-			RJ45_1_WData[1]='k';
-			RJ45_1_WData[3]=0;
-//			RJ45_1_Write(RJ45_1_WData,128);
-		}
-		delay_ms(100);
-		if(MasterCheck_2(4)==1)            //第二次未能找到通信通道     
-		{
-			RJ45_1_WData[0]='F';
-			RJ45_1_WData[1]='a';
-			RJ45_1_WData[3]='i';
-			RJ45_1_WData[4]='l';
-			RJ45_1_WData[5]=2;
-//			RJ45_1_Write(RJ45_1_WData,128);
-			return 1;
-		}
-		else
-		{
-			DealInformation_1();
-		}
-		delay_ms(5000);
+		SetVoltages();
+		MasterCheck_2(FConnectDevice);
 	}
-	if(Device==4)
+	if(FScale==0)  //从模式
 	{
-		 u8 FrequenceInformation[18];	
-//第一圈接收信息
-		while(SM2200ReceiveFalg==0);
-		TIM3->CNT=0;
-		while(TIM3->CNT<300);
-    //返回信息，0~1地址 2频点 3噪声 4~6接收通道值  
-		for(j=0;j<18;j++)
-		{
-			if(ChannelReceive&(1<<j))
-			{
-				Voltage=SM2200RxBuf[j][38];	
-			  OfdmXcvrWrite(CLUSTER_SELECT,2,j);    //通道选择
-				Noise[j]=OfdmXcvrRead(CARRIER_NOISE,2);
-				RJ45_1_WData[3*j]=OfdmXcvrRead(CARRIER_FREQ_SELECT,2);
-				FrequenceInformation[j]=RJ45_1_WData[3*j];
-//				RJ45_1_WData[3*j+1]=Noise[j];
-//				RJ45_1_WData[3*j+2]=Voltage;	
-				ChannelSend=SM2200RxBuf[j][39]*65536+SM2200RxBuf[j][40]*256+SM2200RxBuf[j][41];			
-			}				
-//			else
-//			{
-//				RJ45_1_WData[3*j]=0;
-//				RJ45_1_WData[3*j+1]=0;
-//				RJ45_1_WData[3*j+2]=0;
-//			}
-		}
-    //18通道发送信息		
-		for(j=0;j<18;j++)
-		{
-			if(ChannelReceive&(1<<j))
-			{
-				SM2200TxBuf[j][0]=0;
-				SM2200TxBuf[j][1]=1;
-				for(i=0;i<18;i++)
-				{
-					SM2200TxBuf[i][j*2+2]=FrequenceInformation[j];
-					SM2200TxBuf[i][j*2+3]=Noise[j];
-				}
-				SM2200TxBuf[i][39]=ChannelReceive/65536;
-				SM2200TxBuf[i][40]=(ChannelReceive%65536)/256;
-				SM2200TxBuf[i][41]=ChannelReceive%256;
-			}
-			else
-			{
-				for(i=0;i<18;i++)
-				{
-					SM2200TxBuf[i][j*2+2]=0;
-					SM2200TxBuf[i][j*2+3]=0;
-				}
-			}
-		}
-		for(i=0;i<18;i++)
-		{
-			SM2200TxBuf[i][38]=Voltage;
-			ChannelSize[i]=45;
-	    ChannelType[i]=0;
-		}
-		OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);	
-//		if(RJ45_1_TcpSetFlag==1)
-//		{
-//			RJ45_1_WData[127]=1;
-////			RJ45_1_Write(RJ45_1_WData,128);
-//		}
-		ChannelSend =ChannelReceive;
-		SM2200_Send();
-		ChannelReceive=0;	
-		SM2200ReceiveFalg=0;
-//第一圈接收信息
-		
-//第二圈接收信息
-		LED1=1;
-//	}
-		while(SM2200ReceiveFalg==0);
-		TIM3->CNT=0;
-		while(TIM3->CNT<300);
-    //返回信息，0~1地址 2频点 3噪声 4~6接收通道值  
-		for(j=0;j<18;j++)
-		{
-			if(ChannelReceive&(1<<j))
-			{
-				Voltage=SM2200RxBuf[j][38];	
-			  OfdmXcvrWrite(CLUSTER_SELECT,2,j);    //通道选择
-				Noise[j]=OfdmXcvrRead(CARRIER_NOISE,2);
-				RJ45_1_WData[3*j]=OfdmXcvrRead(CARRIER_FREQ_SELECT,2);
-				FrequenceInformation[j]=RJ45_1_WData[3*j];
-//				RJ45_1_WData[3*j+1]=Noise[j];
-//				RJ45_1_WData[3*j+2]=Voltage;	
-				ChannelSend=SM2200RxBuf[j][39]*65536+SM2200RxBuf[j][40]*256+SM2200RxBuf[j][41];			
-			}				
-//			else
-//			{
-//				RJ45_1_WData[3*j]=0;
-//				RJ45_1_WData[3*j+1]=0;
-//				RJ45_1_WData[3*j+2]=0;
-//			}
-		}
-    //18通道发送信息		
-		for(j=0;j<18;j++)
-		{
-			if(ChannelReceive&(1<<j))
-			{
-				SM2200TxBuf[j][0]=0;
-				SM2200TxBuf[j][1]=1;
-				for(i=0;i<18;i++)
-				{
-					SM2200TxBuf[i][j*2+2]=FrequenceInformation[j];
-					SM2200TxBuf[i][j*2+3]=Noise[j];
-				}
-				SM2200TxBuf[i][39]=ChannelReceive/65536;
-				SM2200TxBuf[i][40]=(ChannelReceive%65536)/256;
-				SM2200TxBuf[i][41]=ChannelReceive%256;
-			}
-			else
-			{
-				for(i=0;i<18;i++)
-				{
-					SM2200TxBuf[i][j*2+2]=0;
-					SM2200TxBuf[i][j*2+3]=0;
-				}
-			}
-		}
-		for(i=0;i<18;i++)
-		{
-			SM2200TxBuf[i][38]=Voltage;
-			ChannelSize[i]=45;
-	    ChannelType[i]=0;
-		}
-		OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);	
-//		if(RJ45_1_TcpSetFlag==1)
-//		{
-//			RJ45_1_WData[127]=1;
-////			RJ45_1_Write(RJ45_1_WData,128);
-//		}
-		ChannelSend =ChannelReceive;
-		SM2200_Send();
-		ChannelReceive=0;	
-		SM2200ReceiveFalg=0;
-//第一圈接收信息
-		
-//第二圈接收信息
-		LED1=1;
+		SlaveCheck();
 	}
 }
 
@@ -233,47 +120,23 @@ u8 FindChatChannel()
   * 参数：ToDevice 需进行连接的设备号
   * 返回：0 通道接通
  **/
-//信息处理  0~1发送设备地址   2~37通道信息  38 电压幅值  39~41发送通道
+//信息处理  0发送设备地址 1本地址 2电压幅值 3~38通道信息  39-74 信道噪声   75-77发送通道
 u8 MasterCheck_1(u8 StartVolatage, u8 ToDevice)
 {
 	u8 i,j;
 	Voltage=StartVolatage;
+	RJ45_2_WData[5]=0;      //1成功 0 失败
 	if(Voltage<MaxVoltage1)    //18个通道
 	{
 		while(Voltage<MaxVoltage1)
 		{
 			OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);
-			ChannelSend=0;
-			for(i=0;i<18;i++)
-			{				
-				SM2200TxBuf[i][0]=ToDevice/256;
-				SM2200TxBuf[i][1]=ToDevice%256;             //设备号
-				for(j=0;j<18;j++)
-				{
-					SM2200TxBuf[i][2+j*2]=ChannelFrenquence[j];
-					SM2200TxBuf[i][3+j*2]=0;
-				}	                              //频点信息
-				SM2200TxBuf[i][38]=Voltage;     //电压幅值		
-				ChannelSize[i]=45;              //数据长度          
-				ChannelType [i]=0;              //传输类型
-				ChannelSend|=1<<i;              //发送通道数
-			}
-			for(i=0;i<18;i++)		
-			{
-				SM2200TxBuf[i][39]=ChannelSend/65536;
-				SM2200TxBuf[i][40]=(ChannelSend%65536)/256;
-				SM2200TxBuf[i][41]=ChannelSend%256;	  		
-			}
-			SM2200_Send();
-			TIM3->CNT=0;
+			SendTem =0x03ffff;    //18个通道发送
+			ChannelSend=SendTem;
+			MSetInformation();    //数据包组建
+			SM2200_Send();        //数据发送
 			SM2200ReceiveFalg=0;
-			while(TIM3->CNT<6000)    //延时600ms
-			{
-				if(SM2200ReceiveFalg!=0)
-					break;
-			}
-			TIM3->CNT=0;
-			while(TIM3->CNT<500);   //延时50ms
+			MWaitAck();  //等待应答
 			if(SM2200ReceiveFalg!=0)
 			{
 				break;
@@ -282,11 +145,15 @@ u8 MasterCheck_1(u8 StartVolatage, u8 ToDevice)
 			{
 				Voltage++;
 			}	
+			Delayms(100);
 		}
-		if(Voltage<MaxVoltage1)
-		{
+		if(Voltage<MaxVoltage1)   //有数据接收到，握手成功
+		{		
+			RJ45_2_WData[4]=18;     //18个通道模式
+			RJ45_2_WData[5]=1;      //1成功 0 失败
 			SM2200ReceiveFalg=0;
-			ChannelReceive=0;  
+			ChannelReceive=0; 
+			ChannelSend=0;
 			return 0;
 		}
 	}
@@ -296,36 +163,12 @@ u8 MasterCheck_1(u8 StartVolatage, u8 ToDevice)
 		while(Voltage<MaxVoltage2)
 		{
 			OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);
-			ChannelSend=0;
-			for(i=1;i<18;i=i+2)
-			{
-				SM2200TxBuf[i][0]=ToDevice/256;
-				SM2200TxBuf[i][1]=ToDevice%256;             //设备号
-				for(j=0;j<18;j++)
-				{
-					SM2200TxBuf[i][2+j*2]=ChannelFrenquence[j];
-					SM2200TxBuf[i][3+j*2]=0;
-				}	                              //频点信息
-				SM2200TxBuf[i][38]=Voltage;     //电压幅值		
-				ChannelSize[i]=45;              //数据长度          
-				ChannelType [i]=0;              //传输类型
-				ChannelSend|=1<<i;              //发送通道数
-			}
-			for(i=0;i<18;i++)		
-			{
-				SM2200TxBuf[i][39]=ChannelSend/65536;
-				SM2200TxBuf[i][40]=(ChannelSend%65536)/256;
-				SM2200TxBuf[i][41]=ChannelSend%256;	  		
-			}	
-			SM2200_Send();
-			TIM3->CNT=0;
-			while(TIM3->CNT<6000)    //延时500ms
-			{
-				if(SM2200ReceiveFalg!=0)
-					break;
-			}
-			TIM3->CNT=0;
-			while(TIM3->CNT<500);   //延时20ms
+			SendTem =0x015555;    //9个通道发送
+			ChannelSend=SendTem;
+			MSetInformation();    //数据包组建
+			SM2200_Send();        //数据发送
+			SM2200ReceiveFalg=0;
+			MWaitAck();  //等待应答
 			if(SM2200ReceiveFalg!=0)
 			{
 				break;
@@ -334,12 +177,32 @@ u8 MasterCheck_1(u8 StartVolatage, u8 ToDevice)
 			{
 				Voltage++;
 			}
+			Delayms(100);			
 		}
-		if(Voltage<MaxVoltage2)
+		if(Voltage<MaxVoltage2)    
 		{
+			RJ45_2_WData[5]=1;      //1成功 0 失败
+			RJ45_2_WData[4]=9;     //9个通道模式
 			SM2200ReceiveFalg=0;
 			ChannelReceive=0;  
 			return 0;
+		}
+		else              //更换另外9个通道，以最大电压
+		{
+			SendTem =0x02AAAA;    //9个通道发送
+			ChannelSend=SendTem;
+			MSetInformation();    //数据包组建
+			SM2200_Send();        //数据发送
+			SM2200ReceiveFalg=0;
+			MWaitAck();  //等待应答
+			if(SM2200ReceiveFalg!=0)
+			{
+				RJ45_2_WData[5]=1;      //1成功 0 失败
+				RJ45_2_WData[4]=9;     //9个通道模式
+				SM2200ReceiveFalg=0;
+				ChannelReceive=0;  
+				return 0;
+			}
 		}
 	}
 	
@@ -348,36 +211,12 @@ u8 MasterCheck_1(u8 StartVolatage, u8 ToDevice)
 		while(Voltage<MaxVoltage3)
 		{
 			OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);
-			ChannelSend=0;
-			for(i=2;i<18;i=i+3)
-			{
-				SM2200TxBuf[i][0]=ToDevice/256;
-				SM2200TxBuf[i][1]=ToDevice%256;             //设备号
-				for(j=0;j<18;j++)
-				{
-					SM2200TxBuf[i][2+j*2]=ChannelFrenquence[j];
-					SM2200TxBuf[i][3+j*2]=0;
-				}	                              //频点信息
-				SM2200TxBuf[i][38]=Voltage;     //电压幅值		
-				ChannelSize[i]=45;              //数据长度          
-				ChannelType[i]=0;              //传输类型
-				ChannelSend|=1<<i;              //发送通道数
-			}
-			for(i=0;i<18;i++)		
-			{
-				SM2200TxBuf[i][39]=ChannelSend/65536;
-				SM2200TxBuf[i][40]=(ChannelSend%65536)/256;
-				SM2200TxBuf[i][41]=ChannelSend%256;	  		
-			}	
-			SM2200_Send();
-			TIM3->CNT=0;
-			while(TIM3->CNT<6000)    //延时500ms
-			{
-				if(SM2200ReceiveFalg!=0)
-					break;
-			}
-			TIM3->CNT=0;
-			while(TIM3->CNT<500);   //延时20ms
+			SendTem =0x9249;    //6个通道发送
+			ChannelSend=SendTem;
+			MSetInformation();    //数据包组建
+			SM2200_Send();        //数据发送
+			SM2200ReceiveFalg=0;
+			MWaitAck();  //等待应答
 			if(SM2200ReceiveFalg!=0)
 			{
 				break;
@@ -386,12 +225,51 @@ u8 MasterCheck_1(u8 StartVolatage, u8 ToDevice)
 			{
 				Voltage++;
 			}
+			Delayms(100);
 		}
 		if(Voltage<MaxVoltage3)
 		{
+			RJ45_2_WData[5]=1;      //1成功 0 失败
+			RJ45_2_WData[4]=6;     //6个通道模式
 			SM2200ReceiveFalg=0;
 			ChannelReceive=0;  
 			return 0;
+		}
+		else
+		{
+			SendTem =0x12492;    //6个通道发送
+			ChannelSend=SendTem;
+			MSetInformation();    //数据包组建	
+			SM2200_Send();        //数据发送
+			SM2200ReceiveFalg=0;
+			MWaitAck();  //等待应答
+			if(SM2200ReceiveFalg!=0)
+			{
+				RJ45_2_WData[5]=1;      //1成功 0 失败
+				RJ45_2_WData[4]=6;     //9个通道模式
+				SM2200ReceiveFalg=0;
+				ChannelReceive=0;  
+				return 0;
+			}
+			Delayms(100);
+		}
+		if(Voltage==MaxVoltage3)   //6个通道发送
+		{
+			SendTem = SendTem<<1;    //6个通道发送
+			ChannelSend=SendTem;
+			MSetInformation();    //数据包组建	
+			SM2200_Send();        //数据发送
+			SM2200ReceiveFalg=0;
+			MWaitAck();  //等待应答
+			if(SM2200ReceiveFalg!=0)
+			{
+				RJ45_2_WData[5]=1;      //1成功 0 失败
+				RJ45_2_WData[4]=6;     //9个通道模式
+				SM2200ReceiveFalg=0;
+				ChannelReceive=0;  
+				return 0;
+			}
+			Delayms(100);
 		}
 	}
 	if((Voltage>=MaxVoltage3)&&(Voltage<MaxVoltage4)) //3个通道
@@ -399,36 +277,12 @@ u8 MasterCheck_1(u8 StartVolatage, u8 ToDevice)
 		while(Voltage<MaxVoltage4)
 		{
 			OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);
-			ChannelSend=0;
-			for(i=4;i<18;i=i+6)
-			{
-				SM2200TxBuf[i][0]=ToDevice/256;
-				SM2200TxBuf[i][1]=ToDevice%256;             //设备号
-				for(j=0;j<18;j++)
-				{
-					SM2200TxBuf[i][2+j*2]=ChannelFrenquence[j];
-					SM2200TxBuf[i][3+j*2]=0;
-				}	                              //频点信息
-				SM2200TxBuf[i][38]=Voltage;     //电压幅值		
-				ChannelSize[i]=45;              //数据长度          
-				ChannelType[i]=0;              //传输类型
-				ChannelSend|=1<<i;              //发送通道数
-			}
-			for(i=0;i<18;i++)		
-			{
-				SM2200TxBuf[i][39]=ChannelSend/65536;
-				SM2200TxBuf[i][40]=(ChannelSend%65536)/256;
-				SM2200TxBuf[i][41]=ChannelSend%256;	  		
-			}	
-			SM2200_Send();
-			TIM3->CNT=0;
-			while(TIM3->CNT<6000)    //延时600ms
-			{
-				if(SM2200ReceiveFalg!=0)
-					break;
-			}
-			TIM3->CNT=0;
-			while(TIM3->CNT<500);   //延时20ms
+			SendTem =0x1041;    //6个通道发送
+			ChannelSend=SendTem;
+			MSetInformation();    //数据包组建
+			SM2200_Send();        //数据发送
+			SM2200ReceiveFalg=0;
+			MWaitAck();  //等待应答
 			if(SM2200ReceiveFalg!=0)
 			{
 				break;
@@ -437,205 +291,120 @@ u8 MasterCheck_1(u8 StartVolatage, u8 ToDevice)
 			{
 				Voltage++;
 			}
+			Delayms(100);
 		}
 		if(Voltage<MaxVoltage4)
 		{
+			RJ45_2_WData[5]=1;      //1成功 0 失败
+			RJ45_2_WData[4]=3;     //18个通道模式
 			SM2200ReceiveFalg=0;
 			ChannelReceive=0;  
 			return 0;
 		}
+		else
+		{
+			for(i=0;i<5;i++)
+			{
+				SendTem = SendTem<<1;    //6个通道发送
+				ChannelSend=SendTem;
+				MSetInformation();    //数据包组建	
+				SM2200_Send();        //数据发送
+				SM2200ReceiveFalg=0;
+				MWaitAck();  //等待应答
+				if(SM2200ReceiveFalg!=0)
+				{
+					RJ45_2_WData[5]=1;      //1成功 0 失败
+					RJ45_2_WData[4]=3;     //9个通道模式
+					SM2200ReceiveFalg=0;
+					ChannelReceive=0;  
+					return 0;
+				}
+				Delayms(100);
+			}
+		}
 	}	
 	return 1;  //频点不通
 }
-
-/**
-  * 功能：第二轮握手频点查找，在第一轮基础上加3
-  * 参数：ToDevice 需进行连接的设备号
-  * 返回：0 通道接通
- **/
-u8 MasterCheck_2(u8 ToDevice)
+//设定最终设定电压
+void SetVoltages(void)
 {
-	u8 i,j;
 	if(Voltage<=MaxVoltage1)     //18个通道
 	{
-		if(MaxVoltage1-Voltage>=3)
+		if(MaxVoltage1-Voltage>=5)
 		{
-			Voltage +=3;
+			Voltage +=5;
 		}
 		else
 		{
 			Voltage=MaxVoltage1;
 		}
 		OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);
-		ChannelSend=0;
-		for(i=0;i<18;i++)
-		{				
-			SM2200TxBuf[i][0]=ToDevice/256;
-			SM2200TxBuf[i][1]=ToDevice%256;             //设备号
-			for(j=0;j<18;j++)
-			{
-				SM2200TxBuf[i][2+j*2]=ChannelFrenquence[j];
-				SM2200TxBuf[i][3+j*2]=0;
-			}	                              //频点信息
-			SM2200TxBuf[i][38]=Voltage;     //电压幅值		
-			ChannelSize[i]=45;              //数据长度          
-			ChannelType[i]=0;               //传输类型
-			ChannelSend|=1<<i;              //发送通道数
-		}
-		for(i=0;i<18;i++)		
-		{
-			SM2200TxBuf[i][39]=ChannelSend/65536;
-			SM2200TxBuf[i][40]=(ChannelSend%65536)/256;
-			SM2200TxBuf[i][41]=ChannelSend%256;
-		}				
-		SM2200_Send();
-		TIM3->CNT=0;
-		while(TIM3->CNT<6000)    //延时500ms
-		{
-			if(SM2200ReceiveFalg!=0)
-				break;
-		}
-		TIM3->CNT=0;
-		while(TIM3->CNT<500);   //延时20ms
 	}
-	
 	if((Voltage<=MaxVoltage2)&&(Voltage>MaxVoltage1))    //9个通道
 	{
-		if(MaxVoltage2-Voltage>=3)
+		if(MaxVoltage2-Voltage>=5)
 		{
-			Voltage +=3;
+			Voltage +=5;
 		}
 		else
 		{
 			Voltage=MaxVoltage2;
 		}
-		OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);
-		ChannelSend=0;
-		for(i=1;i<18;i=i+2)
-		{
-			SM2200TxBuf[i][0]=ToDevice/256;
-			SM2200TxBuf[i][1]=ToDevice%256;             //设备号
-			for(j=0;j<18;j++)
-			{
-				SM2200TxBuf[i][2+j*2]=ChannelFrenquence[j];
-				SM2200TxBuf[i][3+j*2]=0;
-			}	                              //频点信息
-			SM2200TxBuf[i][38]=Voltage;     //电压幅值		
-			ChannelSize[i]=45;              //数据长度          
-			ChannelType[i]=0;               //传输类型
-			ChannelSend|=1<<i;              //发送通道数
-		}
-		for(i=0;i<18;i++)		
-		{
-			SM2200TxBuf[i][39]=ChannelSend/65536;
-			SM2200TxBuf[i][40]=(ChannelSend%65536)/256;
-			SM2200TxBuf[i][41]=ChannelSend%256;
-		}				
-		SM2200_Send();
-		TIM3->CNT=0;
-		while(TIM3->CNT<5000)    //延时500ms
-		{
-			if(SM2200ReceiveFalg!=0)
-				break;
-		}
-		TIM3->CNT=0;
-		while(TIM3->CNT<200);   //延时20ms
 	}
-	
 	if((Voltage<=MaxVoltage3)&&(Voltage>MaxVoltage2))  //6个通道
 	{
-		if(MaxVoltage3-Voltage>=3)
+		if(MaxVoltage3-Voltage>=5)
 		{
-			Voltage +=3;
+			Voltage +=5;
 		}
 		else
 		{
 			Voltage=MaxVoltage3;
 		}
-		OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);
-		ChannelSend=0;
-		for(i=2;i<18;i=i+3)
-		{
-			SM2200TxBuf[i][0]=ToDevice/256;
-			SM2200TxBuf[i][1]=ToDevice%256;             //设备号
-			for(j=0;j<18;j++)
-			{
-				SM2200TxBuf[i][2+j*2]=ChannelFrenquence[j];
-				SM2200TxBuf[i][3+j*2]=0;
-			}	                              //频点信息
-			SM2200TxBuf[i][38]=Voltage;     //电压幅值		
-			ChannelSize[i]=45;              //数据长度          
-			ChannelType[i]=0;               //传输类型
-			ChannelSend|=1<<i;              //发送通道数
-		}
-		for(i=0;i<18;i++)		
-		{
-			SM2200TxBuf[i][39]=ChannelSend/65536;
-			SM2200TxBuf[i][40]=(ChannelSend%65536)/256;
-			SM2200TxBuf[i][41]=ChannelSend%256;
-		}				
-		SM2200_Send();
-		TIM3->CNT=0;
-		while(TIM3->CNT<6000)    //延时500ms
-		{
-			if(SM2200ReceiveFalg!=0)
-				break;
-		}
-		TIM3->CNT=0;
-		while(TIM3->CNT<500);   //延时20ms
 	}
-	
 	if((Voltage<=MaxVoltage4)&&(Voltage>MaxVoltage3))   //3个通道
 	{
-		if(MaxVoltage4-Voltage>=3)
+		if(MaxVoltage4-Voltage>=5)
 		{
-			Voltage +=3;
+			Voltage +=5;
 		}
 		else
 		{
 			Voltage=MaxVoltage4;
 		}
 		OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);
-		ChannelSend=0;
-		for(i=4;i<18;i=i+6)
+	}
+}
+/**
+  * 功能：第二轮握手频点查找，确定握手频点
+  * 返回：0 通道接通
+ **/
+u8 MasterCheck_2(u8 ToDevice)
+{
+	u8 i,j;
+	for(j=0;j<18;j++)
+	{
+		if(SendTem&(1<<j))   //该通道已验证
+			FFlag[(ChannelFrenquence[j]-1)/3]=1;
+	}
+	for(i=0;i<3;i++)
+	{
+		ChannelSend=SendTem;
+		MSetInformation();    //数据包组建
+		SM2200_Send();        //数据发送
+		SM2200ReceiveFalg=0;
+		MWaitAck();  //等待应答
+		if(ChannelReceive!=0)     //数据包处理
 		{
-			SM2200TxBuf[i][0]=ToDevice/256;
-			SM2200TxBuf[i][1]=ToDevice%256;             //设备号
 			for(j=0;j<18;j++)
 			{
-				SM2200TxBuf[i][2+j*2]=ChannelFrenquence[j];
-				SM2200TxBuf[i][3+j*2]=0;
-			}	                              //频点信息
-			SM2200TxBuf[i][38]=Voltage;     //电压幅值		
-			ChannelSize[i]=45;              //数据长度          
-			ChannelType[i]=0;               //传输类型
-			ChannelSend|=1<<i;              //发送通道数
+				if(ChannelReceive&(1<<j))   //该通道有值
+					FReceNum[(ChannelFrenquence[j]-1)/3]+=1;
+			}
 		}
-		for(i=0;i<18;i++)		
-		{
-			SM2200TxBuf[i][39]=ChannelSend/65536;
-			SM2200TxBuf[i][40]=(ChannelSend%65536)/256;
-			SM2200TxBuf[i][41]=ChannelSend%256;
-		}				
-		SM2200_Send();
-		TIM3->CNT=0;
-		while(TIM3->CNT<6000)    //延时500ms
-		{
-			if(SM2200ReceiveFalg!=0)
-				break;
-		}
-		TIM3->CNT=0;
-		while(TIM3->CNT<500);   //延时20ms
+		ChannelReceive=0;
+		Delayms(80);     //延时80ms
 	}
-	
-	if(SM2200ReceiveFalg==0)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}	
 }
 
 
@@ -646,143 +415,147 @@ u8 MasterCheck_2(u8 ToDevice)
 u8 DealInformation_1(void)
 {
 	u8 i,j,k;
-	MReceiveChannelNum=0;     
-	SReceiveChannelNum =0;
-	for(i=0;i<18;i++)                  //18个通道，收集导通信息
+	for(i=0;i<18;i++)
 	{
-		if((ChannelReceive)&(1<<i))      //该通道有值
-		{
-			
-			OfdmXcvrWrite(CLUSTER_SELECT,2,i);    //通道选择
-			MChannelNoise[MReceiveChannelNum]=OfdmXcvrRead(CARRIER_NOISE,2);
-			MChannelFrequence[MReceiveChannelNum]=OfdmXcvrRead(CARRIER_FREQ_SELECT,2);
-			MReceiveChannelNum++;
-			if(SReceiveChannelNum==0)
-			{
-				for(j=0;j<18;j++)
-				{
-					if(SM2200RxBuf[i][j*2+2]!=0)
-					{
-						SChannelFrequence[SReceiveChannelNum]=SM2200RxBuf[i][j*2+2];
-						SChannelNoise[SReceiveChannelNum]=SM2200RxBuf[i][j*2+3];
-						SReceiveChannelNum++;	
-					}
-				}
-			}
-		}
+		
 	}
-	//按照噪声值排序,主动方
-	for(i=0;i<MReceiveChannelNum;i++)
-	{
-		k=0;
-		for(j=0;j<MReceiveChannelNum;j++)
-		{
-			if(i!=j)
-			{
-				if(MChannelNoise[i]>MChannelNoise[j])
-					k++;
-				if(MChannelNoise[i]==MChannelNoise[j])
-				{
-					if(MChannelFrequence[i]<MChannelFrequence[j])
-						k++;
-				}
-			}	
-		}
-		Index[i]=k;
-	}
-	for(i=0;i<MReceiveChannelNum;i++)
-	{
-		RelayNosie[Index[i]]=MChannelNoise[i];            //噪声中继
-		RelayFrequence[Index[i]]=MChannelFrequence[i];        //频点中继
-	}
-	for(i=0;i<MReceiveChannelNum;i++)
-	{
-		MChannelNoise[i]=RelayNosie[i];
-		MChannelFrequence[i]=RelayFrequence[i];
-	}
-	//按照噪声值排序,接收方
-	for(i=0;i<SReceiveChannelNum;i++)
-	{
-		k=0;
-		for(j=0;j<SReceiveChannelNum;j++)
-		{
-			if(i!=j)
-			{
-				if(SChannelNoise[i]>SChannelNoise[j])
-					k++;
-				if(SChannelNoise[i]==SChannelNoise[j])
-				{
-					if(SChannelFrequence[i]<SChannelFrequence[j])
-						k++;
-				}
-			}	
-		}
-		Index[i]=k;
-	}
-	
-	for(i=0;i<SReceiveChannelNum;i++)
-	{
-		RelayNosie[Index[i]]=SChannelNoise[i];            //噪声中继
-		RelayFrequence[Index[i]]=SChannelFrequence[i];        //频点中继
-	}
-	for(i=0;i<SReceiveChannelNum;i++)
-	{
-		SChannelNoise[i]=RelayNosie[i];
-		SChannelFrequence[i]=RelayFrequence[i];
-	}
-	ChannelNum_1=0;
-	//通信频点设置
-	if(SReceiveChannelNum<M_SChannelNum)      //主对从的通道设置
-	{
-		for(i=0;i<SReceiveChannelNum;i++)
-			ChannelFrenquence[i]=SChannelFrequence[i];
-		ChannelNum_1=SReceiveChannelNum;
-	}
-	else
-	{
-		for(i=0;i<M_SChannelNum;i++)
-			ChannelFrenquence[i]=SChannelFrequence[i];
-		ChannelNum_1=M_SChannelNum;	
-	}
-	if(MReceiveChannelNum<S_MChannelNum)      //从对主的通道设置
-	{
-		for(i=0;i<MReceiveChannelNum;i++)
-		{
-			for(j=0;j<ChannelNum_1;j++)
-			{
-				if(MChannelFrequence[i]==ChannelFrenquence[j])
-				{
-					break;
-				}
-			}
-			if(j==ChannelNum_1)
-			{
-				ChannelFrenquence[ChannelNum_1]=MChannelFrequence[i];
-				ChannelNum_1++;
-			}
-		}	
-	}
-	else
-	{
-		for(i=0;i<S_MChannelNum;i++)
-		{
-			for(j=0;j<ChannelNum_1;j++)
-			{
-				if(MChannelFrequence[i]==ChannelFrenquence[j])
-				{
-					break;
-				}
-			}
-			if(j==ChannelNum_1)
-			{
-				ChannelFrenquence[ChannelNum_1]=MChannelFrequence[i];
-				ChannelNum_1++;
-			}
-		}	
-	}
-	SM2200ReceiveFalg=0;
-  ChannelReceive=0;
-	return 0;
+//	MReceiveChannelNum=0;     
+//	SReceiveChannelNum =0;
+//	for(i=0;i<18;i++)                  //18个通道，收集导通信息
+//	{
+//		if((ChannelReceive)&(1<<i))      //该通道有值
+//		{
+//			
+//			OfdmXcvrWrite(CLUSTER_SELECT,2,i);    //通道选择
+//			MChannelNoise[MReceiveChannelNum]=OfdmXcvrRead(CARRIER_NOISE,2);
+//			MChannelFrequence[MReceiveChannelNum]=OfdmXcvrRead(CARRIER_FREQ_SELECT,2);
+//			MReceiveChannelNum++;
+//			if(SReceiveChannelNum==0)
+//			{
+//				for(j=0;j<18;j++)
+//				{
+//					if(SM2200RxBuf[i][j*2+2]!=0)
+//					{
+//						SChannelFrequence[SReceiveChannelNum]=SM2200RxBuf[i][j*2+2];
+//						SChannelNoise[SReceiveChannelNum]=SM2200RxBuf[i][j*2+3];
+//						SReceiveChannelNum++;	
+//					}
+//				}
+//			}
+//		}
+//	}
+//	//按照噪声值排序,主动方
+//	for(i=0;i<MReceiveChannelNum;i++)
+//	{
+//		k=0;
+//		for(j=0;j<MReceiveChannelNum;j++)
+//		{
+//			if(i!=j)
+//			{
+//				if(MChannelNoise[i]>MChannelNoise[j])
+//					k++;
+//				if(MChannelNoise[i]==MChannelNoise[j])
+//				{
+//					if(MChannelFrequence[i]<MChannelFrequence[j])
+//						k++;
+//				}
+//			}	
+//		}
+//		Index[i]=k;
+//	}
+//	for(i=0;i<MReceiveChannelNum;i++)
+//	{
+//		RelayNosie[Index[i]]=MChannelNoise[i];            //噪声中继
+//		RelayFrequence[Index[i]]=MChannelFrequence[i];        //频点中继
+//	}
+//	for(i=0;i<MReceiveChannelNum;i++)
+//	{
+//		MChannelNoise[i]=RelayNosie[i];
+//		MChannelFrequence[i]=RelayFrequence[i];
+//	}
+//	//按照噪声值排序,接收方
+//	for(i=0;i<SReceiveChannelNum;i++)
+//	{
+//		k=0;
+//		for(j=0;j<SReceiveChannelNum;j++)
+//		{
+//			if(i!=j)
+//			{
+//				if(SChannelNoise[i]>SChannelNoise[j])
+//					k++;
+//				if(SChannelNoise[i]==SChannelNoise[j])
+//				{
+//					if(SChannelFrequence[i]<SChannelFrequence[j])
+//						k++;
+//				}
+//			}	
+//		}
+//		Index[i]=k;
+//	}
+//	
+//	for(i=0;i<SReceiveChannelNum;i++)
+//	{
+//		RelayNosie[Index[i]]=SChannelNoise[i];            //噪声中继
+//		RelayFrequence[Index[i]]=SChannelFrequence[i];        //频点中继
+//	}
+//	for(i=0;i<SReceiveChannelNum;i++)
+//	{
+//		SChannelNoise[i]=RelayNosie[i];
+//		SChannelFrequence[i]=RelayFrequence[i];
+//	}
+//	ChannelNum_1=0;
+//	//通信频点设置
+//	if(SReceiveChannelNum<M_SChannelNum)      //主对从的通道设置
+//	{
+//		for(i=0;i<SReceiveChannelNum;i++)
+//			ChannelFrenquence[i]=SChannelFrequence[i];
+//		ChannelNum_1=SReceiveChannelNum;
+//	}
+//	else
+//	{
+//		for(i=0;i<M_SChannelNum;i++)
+//			ChannelFrenquence[i]=SChannelFrequence[i];
+//		ChannelNum_1=M_SChannelNum;	
+//	}
+//	if(MReceiveChannelNum<S_MChannelNum)      //从对主的通道设置
+//	{
+//		for(i=0;i<MReceiveChannelNum;i++)
+//		{
+//			for(j=0;j<ChannelNum_1;j++)
+//			{
+//				if(MChannelFrequence[i]==ChannelFrenquence[j])
+//				{
+//					break;
+//				}
+//			}
+//			if(j==ChannelNum_1)
+//			{
+//				ChannelFrenquence[ChannelNum_1]=MChannelFrequence[i];
+//				ChannelNum_1++;
+//			}
+//		}	
+//	}
+//	else
+//	{
+//		for(i=0;i<S_MChannelNum;i++)
+//		{
+//			for(j=0;j<ChannelNum_1;j++)
+//			{
+//				if(MChannelFrequence[i]==ChannelFrenquence[j])
+//				{
+//					break;
+//				}
+//			}
+//			if(j==ChannelNum_1)
+//			{
+//				ChannelFrenquence[ChannelNum_1]=MChannelFrequence[i];
+//				ChannelNum_1++;
+//			}
+//		}	
+//	}
+//	SM2200ReceiveFalg=0;
+//  ChannelReceive=0;
+//	return 0;
 }
 /**
   * 功能：第三轮握手确认信息
@@ -828,139 +601,139 @@ u8 MasterCheck_3(u8 ToDevice)
 }
 
 /**
-  * 功能：第一轮握手频点查找(从)
-  * 参数：ToDevice 需进行连接的设备号
-  * 返回：0 通道接通
+  * 功能：主设备进行通信频点测试时进行应答
  **/
-u8 SlaveCheck_1(u8 Todevice)
+void SlaveCheck(void)
 {
 	u8 i,j;
-	while(SM2200ReceiveFalg==0);
-	TIM3->CNT=0;
-	while(TIM3->CNT<300);
-	Voltage=0;
-	ChannelSend=0;
-	//返回信息，0~1地址 2频点 3噪声 4~6接收通道值  
-	for(j=0;j<18;j++)
+	u16 k;
+	while(SM2200ReceiveFalg==0)
 	{
-		if(ChannelReceive&(1<<j))
-		{
-			if(Voltage==0)
-			{
-				Voltage=SM2200RxBuf[j][38];	
-			}
-			OfdmXcvrWrite(CLUSTER_SELECT,2,j);    //通道选择
-			SChannelNoise[j]=OfdmXcvrRead(CARRIER_NOISE,2);
-			SChannelFrequence[j]=OfdmXcvrRead(CARRIER_FREQ_SELECT,2);
-      if(ChannelSend==0)
-			{
-				ChannelSend=SM2200RxBuf[j][39]*65536+SM2200RxBuf[j][40]*256+SM2200RxBuf[j][41];		
-			}				
-		}				
+		if(RunMode!=3) //运行模式改变，跳出循环
+			break;
 	}
-	//18通道发送信息		
-	for(j=0;j<18;j++)
+	if(SM2200ReceiveFalg!=0)  //有数据
 	{
-		if(ChannelReceive&(1<<j))
+		for(i=0;i<18;i++)
 		{
-			SM2200TxBuf[j][0]=Todevice/256;
-			SM2200TxBuf[j][1]=Todevice%256;
-			for(i=0;i<18;i++)
+			if(ChannelReceive&1<<i)  //找到数据包并进行解析
 			{
-				SM2200TxBuf[i][j*2+2]=SChannelFrequence[j];
-				SM2200TxBuf[i][j*2+3]=SChannelNoise[j];
-			}
-			SM2200TxBuf[i][39]=ChannelReceive/65536;
-			SM2200TxBuf[i][40]=(ChannelReceive%65536)/256;
-			SM2200TxBuf[i][41]=ChannelReceive%256;
-		}
-		else
-		{
-			for(i=0;i<18;i++)
-			{
-				SM2200TxBuf[i][j*2+2]=0;
-				SM2200TxBuf[i][j*2+3]=0;
+				ConnectDevice=SM2200RxBuf[i][1];
+				Voltage =SM2200RxBuf[i][2];
+				OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);
+				FindMode =SM2200RxBuf[i][3];
+				if(FindMode==1)   //需完成通信频点设置、
+				{
+					for(j=0;j<18;j++)
+						ChannelFrenquence[j]=SM2200RxBuf[i][4+2*j];
+					SetSm2200Frenquence(18);   //18个通道设置
+				}
+				ChannelSend=(SM2200RxBuf[i][58]<<16)+(SM2200RxBuf[i][59]<<8)+SM2200RxBuf[i][60];
+				break;
 			}
 		}
+		ReadRoise();
+		SSetInformation();
+		SM2200_Send();        //数据发送
 	}
-	for(i=0;i<18;i++)
-	{
-		SM2200TxBuf[i][38]=Voltage;
-		ChannelSize[i]=45;
-		ChannelType[i]=0;
-	}
-	OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);	
-	SM2200_Send();
-	ChannelReceive=0;	
-	SM2200ReceiveFalg=0;
-	return 0;
 }
 /**
-  * 功能：第二轮握手频点查找(从)
-  * 参数：ToDevice 需进行连接的设备号
-  * 返回：0 通道接通
+  *功能：主设备组建载波发送数据包
+  *格式：//通信频点组包4-39，40-57信道噪声组包 58 59 60 发送通道组包  
  **/
-u8 SlaveCheck_2(u8 Todevice)
+void MSetInformation(void)
 {
 	u8 i,j;
-	while(SM2200ReceiveFalg==0);
-	TIM3->CNT=0;
-	while(TIM3->CNT<300);
-	Voltage=0;
-	ChannelSend=0;
-	//返回信息，0~1地址 2频点 3噪声 4~6接收通道值  
-	for(j=0;j<18;j++)
-	{
-		if(ChannelReceive&(1<<j))
-		{
-			if(Voltage==0)
-			{
-				Voltage=SM2200RxBuf[j][38];	
-			}
-			OfdmXcvrWrite(CLUSTER_SELECT,2,j);    //通道选择
-			SChannelNoise[j]=OfdmXcvrRead(CARRIER_NOISE,2);
-			SChannelFrequence[j]=OfdmXcvrRead(CARRIER_FREQ_SELECT,2);
-      if(ChannelSend==0)
-			{
-				ChannelSend=SM2200RxBuf[j][39]*65536+SM2200RxBuf[j][40]*256+SM2200RxBuf[j][41];		
-			}				
-		}				
-	}
-	//18通道发送信息		
-	for(j=0;j<18;j++)
-	{
-		if(ChannelReceive&(1<<j))
-		{
-			SM2200TxBuf[j][0]=Todevice/256;
-			SM2200TxBuf[j][1]=Todevice%256;
-			for(i=0;i<18;i++)
-			{
-				SM2200TxBuf[i][j*2+2]=SChannelFrequence[j];
-				SM2200TxBuf[i][j*2+3]=SChannelNoise[j];
-			}
-			SM2200TxBuf[i][39]=ChannelReceive/65536;
-			SM2200TxBuf[i][40]=(ChannelReceive%65536)/256;
-			SM2200TxBuf[i][41]=ChannelReceive%256;
-		}
-		else
-		{
-			for(i=0;i<18;i++)
-			{
-				SM2200TxBuf[i][j*2+2]=0;
-				SM2200TxBuf[i][j*2+3]=0;
-			}
-		}
-	}
 	for(i=0;i<18;i++)
 	{
-		SM2200TxBuf[i][38]=Voltage;
-		ChannelSize[i]=45;
-		ChannelType[i]=0;
+		SM2200TxBuf[i][0]=FConnectDevice;
+		SM2200TxBuf[i][1]=Device;              //设备号
+	  SM2200TxBuf[i][2]=Voltage;             //信号强度
+		SM2200TxBuf[i][3]=FindMode ;           //运行方式
+		for(j=0;j<18;j++)                      //通信频点组包4-39，40-57信道噪声组包 58 59 60 发送通道组包                     
+		{
+			SM2200TxBuf[i][4+j*2]=ChannelFrenquence[j];
+			SM2200TxBuf[i][5+j*2]=0;
+		}	                              //频点信息	
+		ChannelSize[i]=78;              //数据长度          
+		ChannelType[i]=0;              //传输类型
+			
+		SM2200TxBuf[i][58]=ChannelSend/65536;
+		SM2200TxBuf[i][59]=(ChannelSend%65536)/256;
+		SM2200TxBuf[i][60]=ChannelSend%256;	  			
 	}
-	OfdmXcvrWrite(TX_OUT_VOLTAGE,2,Voltage);	
-	SM2200_Send();
-	ChannelReceive=0;	
-	SM2200ReceiveFalg=0;
-	return 0;
+}
+
+/**
+  *功能：主设备等待从设备应答
+ **/
+void MWaitAck(void)
+{
+	TIM3->CNT=0;
+	while(TIM3->CNT<5000)    //延时500ms
+	{
+		if(SM2200ReceiveFalg!=0)
+			break;
+	}
+	TIM3->CNT=0;
+	while(TIM3->CNT<500);   //延时50ms
+}
+/**
+  *功能：延时函数
+ **/
+void Delayms(u16 ms)
+{
+	TIM3->CNT=0;
+	ms=ms*10;
+	while(TIM3->CNT<ms)    //延时500ms
+	{	
+	}
+}
+/**
+  *功能：读取信道噪声,并且读取接收到的信道数
+ **/
+void ReadRoise(void)	
+{
+	u8 i;
+	u16 j;
+	for(i=0;i<18;i++)
+	{
+		OfdmXcvrWrite(CLUSTER_SELECT,2,i);    //通道选择
+		j=OfdmXcvrRead(CARRIER_NOISE,2);
+		if(j>255)
+			j=255;
+		SChannelNoise[i]=j;
+		if(ChannelReceive&1<<i)
+			ChannelRece[i]=1;
+		else
+			ChannelRece[i]=0;
+	}
+}
+/**
+  *功能：从设备组建载波发送数据包
+  *格式：//通信频点组包4-39，40-57信道噪声组包 58 59 60 发送通道组包  
+ **/
+void SSetInformation(void)
+{
+	u8 i,j;
+	//数据包组建
+	for(i=0;i<18;i++)
+	{
+		SM2200TxBuf[i][0]=ConnectDevice;
+		SM2200TxBuf[i][1]=Device;              //设备号
+		SM2200TxBuf[i][2]=Voltage;             //信号强度
+		SM2200TxBuf[i][3]=FindMode ;           //信号强度
+		for(j=0;j<18;j++)                      //通信频点组包4-39，40-57信道噪声组包 58 59 60 发送通道组包                     
+		{
+			SM2200TxBuf[i][4+j*2]=ChannelFrenquence[j];
+			SM2200TxBuf[i][5+j*2]=ChannelRece[j];
+			SM2200TxBuf[i][40+j]=SChannelNoise[j];
+		}
+		SM2200TxBuf[i][58]=ChannelSend/65536;
+		SM2200TxBuf[i][59]=(ChannelSend%65536)/256;
+		SM2200TxBuf[i][60]=ChannelSend%256;	 
+		ChannelSize[i]=78;              //数据长度          
+		ChannelType[i]=0;              //传输类型		
+	}
 }
 
